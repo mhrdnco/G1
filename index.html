@@ -229,7 +229,7 @@
             <a href="https://mhrdnco.github.io/G1/hq1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">01</span>
-                    <span class="person-name">Jarrod Groves</span>
+                    <span class="person-name">Jarod Groves</span>
                 </div>
             </a>
             <a href="https://mhrdnco.github.io/G1/hq2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
@@ -363,7 +363,8 @@
     <script>
         function selectPerson(id, name, branch) {
             const consoleBox = document.getElementById('console-output');
-            consoleBox.innerText = `SYS_LOG: RECORD ACCESSED >> ENTRY_ID: [#${id}] | IDENT: ${name} | DEPT: ${branch}`;
+            consoleBox.innerHTML = `SYS_LOG: RECORD ACCESSED >> ENTRY_ID: [#${id}] | IDENT: ${name} | DEPT: ${branch}`;
+            consoleBox.style.color = "#7b947b"; // Reset back to baseline terminal color
         }
 
         function accessDashboard() {
@@ -371,8 +372,8 @@
             const pin = prompt("SECURE GATEWAY: ENTER ACCESS KEY TO DEPLOY:");
             
             if (pin === "5406733") {
-                consoleBox.innerText = "SYS_LOG: AUTHORIZATION SUCCESS >> COORD DEPLOYED TO DASHBOARD";
-                consoleBox.style.color = "#4b664b";
+                consoleBox.innerHTML = "QUESTIONS OR CONCERNS CONTACT >> <B>SFC ALVARADO</B>";
+                consoleBox.style.color = "#4b664b"; // Change to active green style
                 window.open("https://mhrdnco.github.io/G1/dashboard.html", "_blank");
             } else {
                 consoleBox.innerText = "SYS_LOG: WARNING >> ACCESS DENIED: INVALID SECURITY PIN";
