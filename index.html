@@ -15,21 +15,18 @@
             --terminal-text: #c2d4c2;
             --hud-glow: rgba(75, 102, 75, 0.4);
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Consolas', 'Courier New', Courier, monospace;
         }
-
         body {
             background-color: var(--mil-bg);
             color: var(--terminal-text);
             padding: 24px;
             text-transform: uppercase;
         }
-
         /* Top HUD Header */
         .header-panel {
             border: 2px solid var(--border-green);
@@ -40,20 +37,47 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .header-title {
             font-size: 20px;
             letter-spacing: 2px;
             font-weight: bold;
             color: var(--tac-amber);
         }
-
         .header-status {
             font-size: 12px;
             letter-spacing: 1px;
             color: var(--border-green);
         }
-
+        /* Glowing Tactical Button */
+        .admin-glow-btn {
+            background-color: #1c150b;
+            border: 2px solid var(--tac-amber);
+            color: var(--tac-amber);
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            text-decoration: none;
+            outline: none;
+            box-shadow: 0 0 10px rgba(229, 169, 60, 0.3);
+            transition: all 0.2s ease-in-out;
+            animation: glow-pulse 2s infinite alternate;
+        }
+        .admin-glow-btn:hover {
+            background-color: var(--tac-amber);
+            color: var(--mil-bg);
+            box-shadow: 0 0 20px rgba(229, 169, 60, 0.8);
+            transform: scale(1.03);
+        }
+        @keyframes glow-pulse {
+            0% {
+                box-shadow: 0 0 5px rgba(229, 169, 60, 0.2);
+            }
+            100% {
+                box-shadow: 0 0 15px rgba(229, 169, 60, 0.6);
+            }
+        }
         /* Section Containers */
         .section-container {
             border: 1px solid var(--border-green);
@@ -61,7 +85,6 @@
             margin-bottom: 24px;
             padding: 16px;
         }
-
         .section-header {
             font-size: 15px;
             font-weight: bold;
@@ -71,14 +94,12 @@
             padding-bottom: 8px;
             margin-bottom: 16px;
         }
-
         /* Button Grids */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 12px;
         }
-
         .person-btn {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-green);
@@ -93,50 +114,41 @@
             outline: none;
             transition: background 0.15s, border-color 0.15s, transform 0.1s;
         }
-
         .person-btn:hover {
             background-color: #1b211b;
             border-color: var(--tac-amber);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
         }
-
         .person-btn:active {
             transform: translateY(0);
         }
-
         .person-left {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-
         .person-index {
             color: var(--tac-amber);
             font-weight: bold;
             font-size: 13px;
             min-width: 20px;
         }
-
         .person-name {
             font-size: 13px;
             font-weight: bold;
             letter-spacing: 1px;
         }
-
         .vacant-btn {
             border-style: dashed;
             opacity: 0.85;
         }
-
         .vacant-btn .person-name {
             color: var(--tac-red);
         }
-
         .vacant-btn:hover {
             border-color: var(--tac-red);
         }
-
         /* System Logs Console */
         .log-box {
             position: sticky;
@@ -158,6 +170,8 @@
             <div class="header-title">G1 MHRD MANNING</div>
             <div class="header-status">FOR RESEARCH ANALYSIS</div>
         </div>
+        <!-- Password Protected Glowing Button -->
+        <button class="admin-glow-btn" onclick="accessDashboard()">ADMIN DASHBOARD</button>
         <div class="header-status">TOTAL SLOTS: 15</div>
     </div>
 
@@ -167,14 +181,12 @@
             <span>[HQ] HEADQUARTERS</span>
         </div>
         <div class="grid-container">
-            <!-- Linked to hq1.html -->
             <a href="https://mhrdnco.github.io/G1/hq1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">01</span>
                     <span class="person-name">Jarod Groves</span>
                 </div>
             </a>
-            <!-- Linked to hq2.html -->
             <a href="https://mhrdnco.github.io/G1/hq2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">02</span>
@@ -190,28 +202,24 @@
             <span>SMB</span>
         </div>
         <div class="grid-container">
-            <!-- Linked to smb4.html -->
             <a href="https://mhrdnco.github.io/G1/smb4.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">03</span>
                     <span class="person-name">Miguel Mattei</span>
                 </div>
             </a>
-            <!-- Linked to smb1.html -->
             <a href="https://mhrdnco.github.io/G1/smb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">04</span>
                     <span class="person-name">Marion Kwon</span>
                 </div>
             </a>
-            <!-- Linked to smb3.html -->
             <a href="https://mhrdnco.github.io/G1/smb3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">05</span>
                     <span class="person-name">Andrew Tondre</span>
                 </div>
             </a>
-            <!-- Linked to smb2.html -->
             <a href="https://mhrdnco.github.io/G1/smb2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">06</span>
@@ -227,14 +235,12 @@
             <span>STB</span>
         </div>
         <div class="grid-container">
-            <!-- Linked to stb2.html -->
             <a href="https://mhrdnco.github.io/G1/stb2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">07</span>
                     <span class="person-name">David Garcia</span>
                 </div>
             </a>
-            <!-- Linked to stb1.html -->
             <a href="https://mhrdnco.github.io/G1/stb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">08</span>
@@ -250,21 +256,18 @@
             <span>HROB</span>
         </div>
         <div class="grid-container">
-            <!-- Linked to hrob3.html -->
             <a href="https://mhrdnco.github.io/G1/hrob3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">09</span>
                     <span class="person-name">Kevin Moore</span>
                 </div>
             </a>
-            <!-- Linked to hrob1.html -->
             <a href="https://mhrdnco.github.io/G1/hrob1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">10</span>
                     <span class="person-name">Kimberly Cheatham</span>
                 </div>
             </a>
-            <!-- Linked to hrob2.html -->
             <a href="https://mhrdnco.github.io/G1/hrob2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">11</span>
@@ -280,31 +283,24 @@
             <span>EPSB</span>
         </div>
         <div class="grid-container">
-            <!-- Linked to epsb3.html -->
             <a href="https://mhrdnco.github.io/G1/epsb3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">12</span>
                     <span class="person-name">Tennille Witherspoon</span>
                 </div>
             </a>
-
-            <!-- Linked to epsb1.html -->
             <a href="https://mhrdnco.github.io/G1/epsb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">13</span>
                     <span class="person-name">Nakita Miller</span>
                 </div>
             </a>
-
-            <!-- Linked to epsb2.html -->
             <a href="https://mhrdnco.github.io/G1/epsb2.html" class="person-btn vacant-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">14</span>
                     <span class="person-name">[VACANT 1]</span>
                 </div>
             </a>
-
-            <!-- Linked to epsb4.html -->
             <a href="https://mhrdnco.github.io/G1/epsb4.html" class="person-btn vacant-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">15</span>
@@ -323,6 +319,20 @@
         function selectPerson(id, name, branch) {
             const consoleBox = document.getElementById('console-output');
             consoleBox.innerText = `SYS_LOG: RECORD ACCESSED >> ENTRY_ID: [#${id}] | IDENT: ${name} | DEPT: ${branch}`;
+        }
+
+        function accessDashboard() {
+            const consoleBox = document.getElementById('console-output');
+            const pin = prompt("SECURE GATEWAY: ENTER ACCESS KEY TO DEPLOY:");
+            
+            if (pin === "5406733") {
+                consoleBox.innerText = "SYS_LOG: AUTHORIZATION SUCCESS >> COORD DEPLOYED TO DASHBOARD";
+                consoleBox.style.color = "#4b664b";
+                window.open("https://mhrdnco.github.io/G1/dashboard.html", "_blank");
+            } else {
+                consoleBox.innerText = "SYS_LOG: WARNING >> ACCESS DENIED: INVALID SECURITY PIN";
+                consoleBox.style.color = "var(--tac-red)";
+            }
         }
     </script>
 </body>
