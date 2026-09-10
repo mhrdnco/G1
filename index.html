@@ -48,6 +48,12 @@
             letter-spacing: 1px;
             color: var(--border-green);
         }
+        /* Container for Admin Button and Military Clock */
+        .admin-controls-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
         /* Glowing Tactical Button */
         .admin-glow-btn {
             background-color: #1c150b;
@@ -69,6 +75,28 @@
             color: var(--mil-bg);
             box-shadow: 0 0 20px rgba(229, 169, 60, 0.8);
             transform: scale(1.03);
+        }
+        /* Military Clock Display */
+        .military-clock {
+            border: 1px solid var(--border-green);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--terminal-text);
+            letter-spacing: 1.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 160px;
+        }
+        .clock-time {
+            color: var(--tac-amber);
+        }
+        .clock-date {
+            font-size: 10px;
+            color: #7b947b;
+            margin-top: 2px;
         }
         @keyframes glow-pulse {
             0% {
@@ -170,8 +198,16 @@
             <div class="header-title">G1 MHRD MANNING</div>
             <div class="header-status">FOR RESEARCH ANALYSIS</div>
         </div>
-        <!-- Password Protected Glowing Button -->
-        <button class="admin-glow-btn" onclick="accessDashboard()">ADMIN DASHBOARD</button>
+        
+        <!-- Controls Wrapper (Glow Button + Tactical Time Tracker) -->
+        <div class="admin-controls-wrapper">
+            <button class="admin-glow-btn" onclick="accessDashboard()">ADMIN DASHBOARD</button>
+            <div class="military-clock">
+                <span class="clock-time" id="manning-clock">00:00:00</span>
+                <span class="clock-date" id="manning-date">01 JAN 1970</span>
+            </div>
+        </div>
+
         <div class="header-status">TOTAL SLOTS: 15</div>
     </div>
 
@@ -312,7 +348,7 @@
 
     <!-- CONSOLE LOG OUTPUT -->
     <div class="log-box" id="console-output">
-        QUESTIONS OR CONCERNS CONTACT >> <B>SFC ALVARADO</b>
+        SELECT BUTTON FOR WORK-CYCLE
     </div>
 
     <script>
@@ -326,7 +362,7 @@
             const pin = prompt("SECURE GATEWAY: ENTER ACCESS KEY TO DEPLOY:");
             
             if (pin === "5406733") {
-                consoleBox.innerText = "QUESTIONS OR CONCERNS CONTACT >> <B>SFC ALVARADO</b> ";
+                consoleBox.innerText = "SYS_LOG: AUTHORIZATION SUCCESS >> COORD DEPLOYED TO DASHBOARD";
                 consoleBox.style.color = "#4b664b";
                 window.open("https://mhrdnco.github.io/G1/dashboard.html", "_blank");
             } else {
@@ -334,6 +370,28 @@
                 consoleBox.style.color = "var(--tac-red)";
             }
         }
+
+        // Live Dynamic Military Time Engine
+        function updateMilitaryClock() {
+            const now = new Date();
+            
+            // Format time: 24-Hour Military format with zero-padding (HH:MM:SS)
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('manning-clock').innerText = `${hours}:${minutes}:${seconds}`;
+
+            // Format date: DD MMM YYYY (e.g., 10 SEP 2026)
+            const day = String(now.getDate()).padStart(2, '0');
+            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+            document.getElementById('manning-date').innerText = `${day} ${monthName} ${year}`;
+        }
+
+        // Initialize clock and cycle every 1000ms
+        updateMilitaryClock();
+        setInterval(updateMilitaryClock, 1000);
     </script>
 </body>
 </html>
