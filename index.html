@@ -276,30 +276,38 @@
             <span>SEC_ID: 110D</span>
         </div>
         <div class="grid-container">
-            <button class="person-btn" onclick="selectPerson('12', 'Tennille Witherspoon', 'EPSB')">
+            <!-- Linked to https://mhrdnco.github.io/G1/epsb3.html -->
+            <a href="https://mhrdnco.github.io/G1/epsb3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">12</span>
                     <span class="person-name">Tennille Witherspoon</span>
                 </div>
-            </button>
-            <button class="person-btn" onclick="selectPerson('13', 'Nakita Miller', 'EPSB')">
+            </a>
+
+            <!-- Linked to https://mhrdnco.github.io/G1/epsb1.html -->
+            <a href="https://mhrdnco.github.io/G1/epsb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">13</span>
                     <span class="person-name">Nakita Miller</span>
                 </div>
-            </button>
-            <button class="person-btn vacant-btn" onclick="selectPerson('14', 'VACANT 1', 'EPSB')">
+            </a>
+
+            <!-- Linked to https://mhrdnco.github.io/G1/epsb2.html -->
+            <a href="https://mhrdnco.github.io/G1/epsb2.html" class="person-btn vacant-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">14</span>
                     <span class="person-name">[VACANT 1]</span>
                 </div>
-            </button>
-            <button class="person-btn vacant-btn" onclick="selectPerson('15', 'VACANT 2', 'EPSB')">
+            </a>
+
+            <!-- Linked to https://mhrdnco.github.io/G1/epsb4.html -->
+            <a href="https://mhrdnco.github.io/G1/epsb4.html" class="person-btn vacant-btn" target="_blank" rel="noopener noreferrer">
                 <div class="person-left">
                     <span class="person-index">15</span>
                     <span class="person-name">[VACANT 2]</span>
                 </div>
-            </button>
+            </a>
+
             <button class="person-btn vacant-btn" onclick="selectPerson('16', 'VACANT 3', 'EPSB')">
                 <div class="person-left">
                     <span class="person-index">16</span>
@@ -307,4 +315,18 @@
                 </div>
             </button>
         </div>
-  
+    </div>
+
+    <!-- CONSOLE LOG OUTPUT -->
+    <div class="log-box" id="console-output">
+        SYS_LOG: MISSION DIRECTORY STANDBY // SELECT ENTRY TO PULL RECORD
+    </div>
+
+    <script>
+        function selectPerson(id, name, branch) {
+            const consoleBox = document.getElementById('console-output');
+            consoleBox.innerText = `SYS_LOG: RECORD ACCESSED >> ENTRY_ID: [#${id}] | IDENT: ${name} | DEPT: ${branch}`;
+        }
+    </script>
+</body>
+</html>
