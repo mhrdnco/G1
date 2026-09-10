@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PERSONNEL MANNING CONTROL PANEL</title>
+    <style>
+        :root {
+            --mil-bg: #111411;
+            --panel-bg: #1b211b;
+            --border-green: #3d523d;
+            --accent-green: #4b664b;
+            --tac-amber: #e5a93c;
+            --tac-red: #c0392b;
+            --terminal-text: #c2d4c2;
+            --hud-glow: rgba(75, 102, 75, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--mil-bg);
+            color: var(--terminal-text);
+            padding: 24px;
+            text-transform: uppercase;
+        }
+
+        /* Top HUD Header */
+        .header-panel {
+            border: 2px solid var(--border-green);
+            background-color: var(--panel-bg);
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 20px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            color: var(--tac-amber);
+        }
+
+        .header-status {
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: var(--border-green);
+        }
+
+        /* Section Containers */
+        .section-container {
+            border: 1px solid var(--border-green);
+            background-color: rgba(27, 33, 27, 0.6);
+            margin-bottom: 24px;
+            padding: 16px;
+        }
+
+        .section-header {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--tac-amber);
+            border-bottom: 1px dashed var(--border-green);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Button Grids */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .person-btn {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-green);
+            color: var(--terminal-text);
+            padding: 12px 16px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            outline: none;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+        }
+
+        .person-btn:hover {
+            background-color: #242e24;
+            border-color: var(--tac-amber);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .person-btn:active {
+            transform: translateY(0);
+        }
+
+        .person-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .person-index {
+            color: var(--tac-amber);
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 20px;
+        }
+
+        .person-name {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .vacant-btn {
+            border-style: dashed;
+            opacity: 0.85;
+        }
+
+        .vacant-btn .person-name {
+            color: var(--tac-red);
+        }
+
+        .vacant-btn:hover {
+            border-color: var(--tac-red);
+        }
+
+        /* System Logs Console */
+        .log-box {
+            position: sticky;
+            bottom: 10px;
+            border: 1px solid var(--border-green);
+            background: #0d100d;
+            padding: 14px;
+            font-size: 12px;
+            color: #7b947b;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div class="header-panel">
+        <div>
+            <div class="header-title">ORGANIZATIONAL MANNING DIRECTORY</div>
+            <div class="header-status">STATUS: UNCLASSIFIED // PERSONNEL ROSTER</div>
+        </div>
+        <div class="header-status">TOTAL SLOTS: 16</div>
+    </div>
+
+    <!-- HQ SECTION -->
+    <div class="section-container">
+        <div class="section-header">
+            <span>[HQ] HEADQUARTERS</span>
+            <span>SEC_ID: 110-01</span>
+        </div>
+        <div class="grid-container">
+            <button class="person-btn" onclick="selectPerson('1', 'Jarod Groves', 'HQ')">
+                <div class="person-left">
+                    <span class="person-index">01</span>
+                    <span class="person-name">Jarod Groves</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('2', 'Timothy Webster', 'HQ')">
+                <div class="person-left">
+                    <span class="person-index">02</span>
+                    <span class="person-name">Timothy Webster</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- SMB SECTION -->
+    <div class="section-container">
+        <div class="section-header">
+            <span>[SMB] SECURITY MANAGEMENT BRANCH</span>
+            <span>SEC_ID: 110B</span>
+        </div>
+        <div class="grid-container">
+            <button class="person-btn" onclick="selectPerson('3', 'Miguel Mattei', 'SMB')">
+                <div class="person-left">
+                    <span class="person-index">03</span>
+                    <span class="person-name">Miguel Mattei</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('4', 'Marion Kwon', 'SMB')">
+                <div class="person-left">
+                    <span class="person-index">04</span>
+                    <span class="person-name">Marion Kwon</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('5', 'Andrew Tondre', 'SMB')">
+                <div class="person-left">
+                    <span class="person-index">05</span>
+                    <span class="person-name">Andrew Tondre</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('6', 'Denise Serrano', 'SMB')">
+                <div class="person-left">
+                    <span class="person-index">06</span>
+                    <span class="person-name">Denise Serrano</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- STB SECTION -->
+    <div class="section-container">
+        <div class="section-header">
+            <span>[STB] SPECIAL TROOPS BRANCH</span>
+            <span>SEC_ID: 110E</span>
+        </div>
+        <div class="grid-container">
+            <button class="person-btn" onclick="selectPerson('7', 'David Garcia', 'STB')">
+                <div class="person-left">
+                    <span class="person-index">07</span>
+                    <span class="person-name">David Garcia</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('8', 'Oscar Jimenez', 'STB')">
+                <div class="person-left">
+                    <span class="person-index">08</span>
+                    <span class="person-name">Oscar Jimenez</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- HROB SECTION -->
+    <div class="section-container">
+        <div class="section-header">
+            <span>[HROB] HUMAN RESOURCES OPERATIONS BRANCH</span>
+            <span>SEC_ID: 110C</span>
+        </div>
+        <div class="grid-container">
+            <button class="person-btn" onclick="selectPerson('9', 'Kevin Moore', 'HROB')">
+                <div class="person-left">
+                    <span class="person-index">09</span>
+                    <span class="person-name">Kevin Moore</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('10', 'Kimberly Cheatham', 'HROB')">
+                <div class="person-left">
+                    <span class="person-index">10</span>
+                    <span class="person-name">Kimberly Cheatham</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('11', 'Chandler Vargas', 'HROB')">
+                <div class="person-left">
+                    <span class="person-index">11</span>
+                    <span class="person-name">Chandler Vargas</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- EPSB SECTION -->
+    <div class="section-container">
+        <div class="section-header">
+            <span>[EPSB] EMERGENCY PLANS & SERVICES BRANCH</span>
+            <span>SEC_ID: 110D</span>
+        </div>
+        <div class="grid-container">
+            <button class="person-btn" onclick="selectPerson('12', 'Tennille Witherspoon', 'EPSB')">
+                <div class="person-left">
+                    <span class="person-index">12</span>
+                    <span class="person-name">Tennille Witherspoon</span>
+                </div>
+            </button>
+            <button class="person-btn" onclick="selectPerson('13', 'Nakita Miller', 'EPSB')">
+                <div class="person-left">
+                    <span class="person-index">13</span>
+                    <span class="person-name">Nakita Miller</span>
+                </div>
+            </button>
+            <button class="person-btn vacant-btn" onclick="selectPerson('14', 'VACANT 1', 'EPSB')">
+                <div class="person-left">
+                    <span class="person-index">14</span>
+                    <span class="person-name">[VACANT 1]</span>
+                </div>
+            </button>
+            <button class="person-btn vacant-btn" onclick="selectPerson('15', 'VACANT 2', 'EPSB')">
+                <div class="person-left">
+                    <span class="person-index">15</span>
+                    <span class="person-name">[VACANT 2]</span>
+                </div>
+            </button>
+            <button class="person-btn vacant-btn" onclick="selectPerson('16', 'VACANT 3', 'EPSB')">
+                <div class="person-left">
+                    <span class="person-index">16</span>
+                    <span class="person-name">[VACANT 3]</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- CONSOLE LOG OUTPUT -->
+    <div class="log-box" id="console-output">
+        SYS_LOG: MISSION DIRECTORY STANDBY // SELECT ENTRY TO PULL RECORD
+    </div>
+
+    <script>
+        function selectPerson(id, name, branch) {
+            const consoleBox = document.getElementById('console-output');
+            consoleBox.innerText = `SYS_LOG: RECORD ACCESSED >> ENTRY_ID: [#${id}] | IDENT: ${name} | DEPT: ${branch}`;
+        }
+    </script>
+</body>
+</html>
