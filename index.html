@@ -37,6 +37,12 @@
             justify-content: space-between;
             align-items: center;
         }
+        /* Left Header Section containing Title, Status, and Admin Button */
+        .left-controls-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
         .header-title {
             font-size: 20px;
             letter-spacing: 2px;
@@ -48,11 +54,11 @@
             letter-spacing: 1px;
             color: var(--border-green);
         }
-        /* Container for Admin Button and Military Clock */
-        .admin-controls-wrapper {
+        /* Right Header Section containing Clock and Slots */
+        .right-controls-wrapper {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 24px;
         }
         /* Glowing Tactical Button */
         .admin-glow-btn {
@@ -194,21 +200,24 @@
 
     <!-- HUD -->
     <div class="header-panel">
-        <div>
-            <div class="header-title">G1 MHRD MANNING</div>
-            <div class="header-status">FOR RESEARCH ANALYSIS</div>
+        <!-- Left Wrapper: Holds Title, Status, and Admin Button -->
+        <div class="left-controls-wrapper">
+            <div>
+                <div class="header-title">G1 MHRD MANNING</div>
+                <div class="header-status">FOR RESEARCH ANALYSIS</div>
+            </div>
+            <!-- Admin Dashboard button placed left -->
+            <button class="admin-glow-btn" onclick="accessDashboard()">ADMIN DASHBOARD</button>
         </div>
         
-        <!-- Controls Wrapper (Glow Button + Tactical Time Tracker) -->
-        <div class="admin-controls-wrapper">
-            <button class="admin-glow-btn" onclick="accessDashboard()">ADMIN DASHBOARD</button>
+        <!-- Right Wrapper: Holds Military Clock and Slots -->
+        <div class="right-controls-wrapper">
             <div class="military-clock">
                 <span class="clock-time" id="manning-clock">00:00:00</span>
                 <span class="clock-date" id="manning-date">01 JAN 1970</span>
             </div>
+            <div class="header-status">TOTAL SLOTS: 15</div>
         </div>
-
-        <div class="header-status">TOTAL SLOTS: 15</div>
     </div>
 
     <!-- HQ SECTION -->
