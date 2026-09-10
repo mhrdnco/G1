@@ -269,7 +269,8 @@
                 <span id="active-target">ACTIVE RECORD: 01 - JAROD GROVES // WEEKLY DASHBOARD</span>
                 <span id="source-url">SOURCE: https://mhrdnco.github.io/G1/hq1.html</span>
             </div>
-            <iframe id="dashboard-frame" class="viewport-frame" src="https://mhrdnco.github.io/G1/hq1.html"></iframe>
+            <!-- Initialized with #tab-3 and active onload listener -->
+            <iframe id="dashboard-frame" class="viewport-frame" src="https://mhrdnco.github.io/G1/hq1.html#tab-3" onload="enforceTab3()"></iframe>
         </section>
     </main>
 
@@ -279,13 +280,35 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
+            // Force tab-3 hash mapping to target url
+            const targetUrl = url.includes('#') ? url.split('#')[0] + '#tab-3' : url + '#tab-3';
+
             // Update iframe target
             const frame = document.getElementById('dashboard-frame');
-            frame.src = url;
+            frame.src = targetUrl;
 
             // Update status headers
             document.getElementById('active-target').innerText = `ACTIVE RECORD: ${label} // WEEKLY DASHBOARD`;
             document.getElementById('source-url').innerText = `SOURCE: ${url}`;
+        }
+
+        function enforceTab3() {
+            try {
+                const frame = document.getElementById('dashboard-frame');
+                const frameDoc = frame.contentDocument || frame.contentWindow.document;
+
+                // Query potential selector elements for "3. Weekly Dashboard" tab 
+                const tabs = frameDoc.querySelectorAll('button, a, .tab, .nav-link, [role="tab"]');
+                tabs.forEach(tab => {
+                    const text = tab.innerText.toLowerCase();
+                    if (text.includes('3.') || text.includes('weekly') || text.includes('dashboard') || text.includes('tab-3')) {
+                        tab.click();
+                    }
+                });
+            } catch (e) {
+                // Safeguard against cross-origin frames; the #tab-3 hash acts as the native selector fallback
+                console.log("Cross-origin security active. Page selection triggered via URL hash target (#tab-3).");
+            }
         }
     </script>
 </body>
