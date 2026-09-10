@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G1 MHRD - PERSONNEL MANNING CONTROL PANEL</title>
+    <title>G1 MHRD MANNING</title>
     <style>
         :root {
-            --mil-bg: #111411;
-            --panel-bg: #1b211b;
+            --mil-bg: #000000;
+            --panel-bg: #111411;
             --border-green: #3d523d;
             --accent-green: #4b664b;
             --tac-amber: #e5a93c;
@@ -57,7 +57,7 @@
         /* Section Containers */
         .section-container {
             border: 1px solid var(--border-green);
-            background-color: rgba(27, 33, 27, 0.6);
+            background-color: rgba(17, 20, 17, 0.8);
             margin-bottom: 24px;
             padding: 16px;
         }
@@ -70,8 +70,6 @@
             border-bottom: 1px dashed var(--border-green);
             padding-bottom: 8px;
             margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
         }
 
         /* Button Grids */
@@ -97,7 +95,7 @@
         }
 
         .person-btn:hover {
-            background-color: #242e24;
+            background-color: #1b211b;
             border-color: var(--tac-amber);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
@@ -144,7 +142,7 @@
             position: sticky;
             bottom: 10px;
             border: 1px solid var(--border-green);
-            background: #0d100d;
+            background: #000000;
             padding: 14px;
             font-size: 12px;
             color: #7b947b;
@@ -157,17 +155,16 @@
     <!-- HUD -->
     <div class="header-panel">
         <div>
-            <div class="header-title">ORGANIZATIONAL MANNING DIRECTORY</div>
-            <div class="header-status">STATUS: UNCLASSIFIED // PERSONNEL ROSTER</div>
+            <div class="header-title">G1 MHRD MANNING</div>
+            <div class="header-status">FOR RESEARCH ANALYSIS</div>
         </div>
-        <div class="header-status">TOTAL SLOTS: 16</div>
+        <div class="header-status">TOTAL SLOTS: 15</div>
     </div>
 
     <!-- HQ SECTION -->
     <div class="section-container">
         <div class="section-header">
             <span>[HQ] HEADQUARTERS</span>
-            <span>SEC_ID: 110-01</span>
         </div>
         <div class="grid-container">
             <!-- Linked to hq1.html -->
@@ -191,7 +188,6 @@
     <div class="section-container">
         <div class="section-header">
             <span>[SMB] SECURITY MANAGEMENT BRANCH</span>
-            <span>SEC_ID: 110B</span>
         </div>
         <div class="grid-container">
             <!-- Linked to smb4.html -->
@@ -229,7 +225,6 @@
     <div class="section-container">
         <div class="section-header">
             <span>[STB] SPECIAL TROOPS BRANCH</span>
-            <span>SEC_ID: 110E</span>
         </div>
         <div class="grid-container">
             <!-- Linked to stb2.html -->
@@ -253,7 +248,6 @@
     <div class="section-container">
         <div class="section-header">
             <span>[HROB] HUMAN RESOURCES OPERATIONS BRANCH</span>
-            <span>SEC_ID: 110C</span>
         </div>
         <div class="grid-container">
             <!-- Linked to hrob3.html -->
@@ -284,7 +278,6 @@
     <div class="section-container">
         <div class="section-header">
             <span>[EPSB] EMERGENCY PLANS & SERVICES BRANCH</span>
-            <span>SEC_ID: 110D</span>
         </div>
         <div class="grid-container">
             <!-- Linked to epsb3.html -->
@@ -318,13 +311,6 @@
                     <span class="person-name">[VACANT 2]</span>
                 </div>
             </a>
-
-            <button class="person-btn vacant-btn" onclick="selectPerson('16', 'VACANT 3', 'EPSB')">
-                <div class="person-left">
-                    <span class="person-index">16</span>
-                    <span class="person-name">[VACANT 3]</span>
-                </div>
-            </button>
         </div>
     </div>
 
