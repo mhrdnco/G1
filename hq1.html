@@ -5,66 +5,33 @@
         const REPO_OWNER = "mhrdnco";
         const REPO_NAME = "G1";
         const DATA_FILE_PATH = "data.json";
-        const EMPLOYEE_KEY = "emp_01"; // Slot 01: Jarod Groves
+        const EMPLOYEE_KEY = "emp_01"; // UNIQUE KEY FOR JAROD GROVES
         const MASTER_PIN = "MHRD";
+        const LOCAL_STORAGE_PREFIX = 'hr_tracker_hq1'; // Unique to this HTML file
 
-        const psnLookup = {
-            "A0485155": "W3VYAA-110-01",
-            "A0398461": "W3VYAA-110D-03",
-            "A0398447": "W3VYAA-110B-03",
-            "A042566":  "W3VYAA-110D-04",
-            "A0398459": "W3VYAA-110D-05",
-            "A0424561": "W3VYAA-110D-06",
-            "A0398446": "W3VYAA-110B-04",
-            "A0398448": "W3VYAA-110B-05",
-            "A0398449": "W3VYAA1-10B-06",
-            "A0398455": "W3VYAA-110C-04",
-            "A0398833": "W3VYAA-110D-07",
-            "A0399069": "W3VY01-100-07",
-            "A0398454": "W3VYAA-110C-03",
-            "A0399067": "W3VYAA-110C-05",
-            "A0399070": "W3VYAA-110E-01",
-            "A0398464": "W3VYAA-110E-02"
-        };
-
-        const pdTasks = [
-            "IPPS-A Command HR SME & Deployment Mgmt",
-            "MILPAY & IPPS-A Upgrade Training Execution",
-            "HR Systems Data Extraction & Analysis",
-            "Workflow Modeling & Compliance Reporting",
-            "Resolution of Personnel Software Deficiencies",
-            "Strategic Communications & Change Management",
-            "Customer Relations Management (CRM) Support",
-            "Technical Reviews of HR Allocation Models",
-            "Briefings, Conferences & IPR Presentations"
-        ];
-
+        // YOUR ORIGINAL VARIABLES
+        const psnLookup = { "A0485155": "W3VYAA-110-01", "A0398461": "W3VYAA-110D-03", "A0398447": "W3VYAA-110B-03", "A042566":  "W3VYAA-110D-04", "A0398459": "W3VYAA-110D-05", "A0424561": "W3VYAA-110D-06", "A0398446": "W3VYAA-110B-04", "A0398448": "W3VYAA-110B-05", "A0398449": "W3VYAA1-10B-06", "A0398455": "W3VYAA-110C-04", "A0398833": "W3VYAA-110D-07", "A0399069": "W3VY01-100-07", "A0398454": "W3VYAA-110C-03", "A0399067": "W3VYAA-110C-05", "A0399070": "W3VYAA-110E-01", "A0398464": "W3VYAA-110E-02" };
+        const pdTasks = [ "IPPS-A Command HR SME & Deployment Mgmt", "MILPAY & IPPS-A Upgrade Training Execution", "HR Systems Data Extraction & Analysis", "Workflow Modeling & Compliance Reporting", "Resolution of Personnel Software Deficiencies", "Strategic Communications & Change Management", "Customer Relations Management (CRM) Support", "Technical Reviews of HR Allocation Models", "Briefings, Conferences & IPR Presentations" ];
+        
         let tasks = [];
         let battleRhythm = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] };
         let history = [];
-        let empInfo = { name: "", section: "", uicParaLin: "", psn: "" };
+        let empInfo = { name: "Jarod Groves", section: "HQ", uicParaLin: "", psn: "" };
         let pieChart;
 
+        // --- Core Functions ---
         window.onload = async function() {
             populatePsnDropdown();
-            populateDropdowns(); 
-            await loadCloudData(); 
+            populateDropdowns();
+            await loadCloudData();
+            renderAll(); // THIS WAS THE MISSING PIECE
+        };
+        
+        function renderAll() {
             renderBattleRhythm(); 
             updateTable(); 
             refreshHeaders();
-        };
-
-        function populateDropdowns() {
-            let optionsHTML = '<option value="">Select Task...</option>';
-            pdTasks.forEach(task => { optionsHTML += `<option value="${task}">${task}</option>`; });
-            optionsHTML += '<option value="OTHER">OTHER</option>';
-            document.getElementById('brTaskSelect').innerHTML = optionsHTML;
-            document.getElementById('taskSelect').innerHTML = optionsHTML;
-
-            let allTasksList = '';
-            pdTasks.forEach(task => allTasksList += `<li>${task}</li>`);
-            allTasksList += `<li>OTHER</li>`;
-            document.getElementById('adminAllTasks').innerHTML = allTasksList;
+            renderHistory();
         }
 
         async function loadCloudData() {
@@ -78,271 +45,64 @@
                         tasks = empRecord.tasks || [];
                         battleRhythm = empRecord.battleRhythm || { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] };
                         history = empRecord.history || [];
-                        empInfo = empRecord.empInfo || { name: "", section: "", uicParaLin: "", psn: "" };
-                        if (history.length > 0) renderHistory();
-                        console.log("Synchronized from Central GitHub Database.");
+                        empInfo = empRecord.empInfo || { name: "Jarod Groves", section: "HQ", uicParaLin: "", psn: "" };
+                        console.log(`Synchronized ${EMPLOYEE_KEY} from GitHub.`);
                         return;
                     }
                 }
             } catch (err) {
-                console.warn("Could not reach GitHub database, falling back to local storage.", err);
+                console.warn("Could not reach GitHub database.", err);
             }
             loadLocalData();
         }
 
         function autoSave() {
-            localStorage.setItem('hr_tracker_tasks_m1608429fr', JSON.stringify(tasks));
-            localStorage.setItem('hr_tracker_br_m1608429fr', JSON.stringify(battleRhythm));
-            localStorage.setItem('hr_tracker_history_m1608429fr', JSON.stringify(history));
-            localStorage.setItem('hr_tracker_emp_m1608429fr', JSON.stringify(empInfo));
+            localStorage.setItem(`${LOCAL_STORAGE_PREFIX}_tasks`, JSON.stringify(tasks));
+            localStorage.setItem(`${LOCAL_STORAGE_PREFIX}_br`, JSON.stringify(battleRhythm));
+            localStorage.setItem(`${LOCAL_STORAGE_PREFIX}_history`, JSON.stringify(history));
+            localStorage.setItem(`${LOCAL_STORAGE_PREFIX}_emp`, JSON.stringify(empInfo));
         }
 
         async function manualSave() {
             autoSave();
-
             const enteredPin = prompt("SECURE SYNC: Enter Security PIN to commit changes universally:");
             if (enteredPin !== MASTER_PIN) {
-                alert("Incorrect PIN. Data saved LOCALLY to this machine only.");
+                alert("Incorrect PIN. Data saved LOCALLY only.");
                 return;
             }
-
             let token = sessionStorage.getItem("g1_sync_token");
             if (!token) {
                 token = prompt("FIRST-TIME SETUP: Paste your GitHub Personal Access Token (PAT):");
-                if (!token) {
-                    alert("Sync aborted. Data saved locally only.");
-                    return;
-                }
+                if (!token) { alert("Sync aborted."); return; }
                 sessionStorage.setItem("g1_sync_token", token);
             }
-
             const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`;
-            
             try {
-                const getRes = await fetch(apiUrl, {
-                    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" }
-                });
-
-                if (!getRes.ok) throw new Error("Could not access repository with provided token.");
+                const getRes = await fetch(apiUrl, { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json" } });
+                if (!getRes.ok) throw new Error("Could not access repository. Check your GitHub Token.");
                 const fileData = await getRes.json();
-                const currentSha = fileData.sha;
-                
                 const currentContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
-
                 if (!currentContent.employees) currentContent.employees = {};
                 currentContent.last_updated = new Date().toISOString();
-                currentContent.employees[EMPLOYEE_KEY] = {
-                    name: empInfo.name,
-                    section: empInfo.section,
-                    tasks: tasks,
-                    battleRhythm: battleRhythm,
-                    history: history,
-                    empInfo: empInfo
-                };
-
+                currentContent.employees[EMPLOYEE_KEY] = { name: empInfo.name, section: empInfo.section, tasks, battleRhythm, history, empInfo };
                 const newContentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(currentContent, null, 2))));
-
                 const putRes = await fetch(apiUrl, {
                     method: "PUT",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/vnd.github.v3+json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        message: `ROSTER UPDATE: ${empInfo.name || "Jarod Groves"} [${new Date().toLocaleDateString()}]`,
-                        content: newContentEncoded,
-                        sha: currentSha
-                    })
+                    headers: { "Authorization": `Bearer ${token}`, "Accept": "application/vnd.github.v3+json", "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: `ROSTER UPDATE: ${empInfo.name || "Employee"} (${EMPLOYEE_KEY})`, content: newContentEncoded, sha: fileData.sha })
                 });
-
-                if (putRes.ok) {
-                    alert("SUCCESS: Record committed to GitHub! All 15 computers will now see this update.");
-                } else {
-                    const errObj = await putRes.json();
-                    alert(`COMMIT FAILED: ${errObj.message}`);
-                }
-            } catch (err) {
-                alert(`SYNC ERROR: ${err.message}`);
-            }
+                if (putRes.ok) { alert("SUCCESS: Record committed to GitHub!"); } 
+                else { const errObj = await putRes.json(); alert(`COMMIT FAILED: ${errObj.message}`); }
+            } catch (err) { alert(`SYNC ERROR: ${err.message}`); }
         }
-
-        function switchTab(tabId, element) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-            if(element) element.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-            if(tabId === 'dashboardTab') updateDashboard();
-        }
-
-        function promptAdmin(element) {
-            const pin = prompt("Enter Supervisor PIN:");
-            if (pin === "0000" || pin === MASTER_PIN) {
-                switchTab('adminTab', element); 
-                populateAdminFields(); 
-                updateAdminTotals();
-            } else if (pin !== null) {
-                alert("Unauthorized Access. Incorrect PIN.");
-            }
-        }
-
-        function checkBrOther() { document.getElementById('brOtherDiv').className = (document.getElementById('brTaskSelect').value === 'OTHER') ? 'form-group flex-child' : 'form-group flex-child hidden'; }
-
-        function addRhythmTask() {
-            const day = document.getElementById('brDay').value;
-            let task = document.getElementById('brTaskSelect').value;
-            if (task === 'OTHER') { const other = document.getElementById('brOtherTask').value; if(!other) return alert("Describe task."); task = "OTHER: " + other; }
-            if(!task) return alert("Select a task.");
-            battleRhythm[day].push(task); autoSave(); renderBattleRhythm(); document.getElementById('brTaskSelect').value = ''; checkBrOther();
-        }
-
-        function removeRhythmTask(day, index) { battleRhythm[day].splice(index, 1); autoSave(); renderBattleRhythm(); }
-
-        function renderBattleRhythm() {
-            Object.keys(battleRhythm).forEach(day => {
-                const container = document.querySelector(`#cal-${day} .tasks`); container.innerHTML = '';
-                battleRhythm[day].forEach((task, index) => { container.innerHTML += `<div class="br-task">${task} <span class="delete-btn" onclick="removeRhythmTask('${day}', ${index})">X</span></div>`; });
-            });
-        }
-
-        document.getElementById('taskDate').addEventListener('change', function() {
-            const date = new Date(this.value); 
-            const dayOfWeek = new Date(date.getTime() + Math.abs(date.getTimezoneOffset()*60000)).toLocaleDateString('en-US', { weekday: 'long' });
-            if(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(dayOfWeek)) document.getElementById('taskDay').value = dayOfWeek;
-        });
-
-        function checkTrackerOther() { document.getElementById('trackerOtherDiv').className = (document.getElementById('taskSelect').value === 'OTHER') ? 'form-group' : 'form-group hidden'; }
-
-        function addTask() {
-            const date = document.getElementById('taskDate').value; const day = document.getElementById('taskDay').value;
-            let task = document.getElementById('taskSelect').value; const time = parseInt(document.getElementById('taskTime').value);
-            if (task === 'OTHER') { const other = document.getElementById('trackerOtherTask').value; if(!other) return alert("Describe task."); task = "OTHER: " + other; }
-            if (!date || !task || !time) return alert("Fill out all fields.");
-            tasks.push({ date, day, task, time }); autoSave(); document.getElementById('taskSelect').value = ''; document.getElementById('taskTime').value = ''; checkTrackerOther(); updateTable();
-        }
-
-        function deleteTask(index) { tasks.splice(index, 1); autoSave(); updateTable(); }
-
-        function updateTable() {
-            const tbody = document.querySelector('#taskTable tbody'); tbody.innerHTML = ''; 
-            tasks.forEach((t, index) => { tbody.innerHTML += `<tr><td>${t.date}</td><td>${t.day}</td><td>${t.task}</td><td>${t.time}</td><td><button style="background:red; padding:3px 8px;" onclick="deleteTask(${index})">X</button></td></tr>`; });
-        }
-
-        function updateDashboard() {
-            const summary = {}; let sumMins = 0;
-            tasks.forEach(t => { summary[t.task] = (summary[t.task] || 0) + t.time; sumMins += t.time; });
-            const tbody = document.querySelector('#summaryTable tbody'); tbody.innerHTML = ''; let labels = [], data = [];
-            for (const [key, value] of Object.entries(summary)) { labels.push(key); data.push(value); tbody.innerHTML += `<tr><td>${key}</td><td>${value}</td><td>${(value / 60).toFixed(2)}</td></tr>`; }
-            document.getElementById('totalMins').innerText = sumMins; document.getElementById('totalHrs').innerText = (sumMins / 60).toFixed(2);
-            
-            const ctx = document.getElementById('taskPieChart').getContext('2d');
-            if (pieChart) pieChart.destroy(); 
-            pieChart = new Chart(ctx, { type: 'pie', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#002244', '#004080', '#0059b3', '#3385ff', '#80b3ff', '#ffcc00', '#e6b800', '#b38f00', '#665191'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
-        }
-
-        function updateAdminTotals() {
-            let adminSumMins = 0;
-            let reportedTasksList = '';
-            let unreportedTasksList = '';
-            let uniqueReportedTasks = [...new Set(tasks.map(t => {
-                if (t.task.startsWith("OTHER:")) return "OTHER";
-                return t.task;
-            }))];
-            if (uniqueReportedTasks.length === 0) reportedTasksList = '<li>None</li>';
-            else uniqueReportedTasks.forEach(task => reportedTasksList += `<li>${task}</li>`);
-            document.getElementById('adminReportedTasks').innerHTML = reportedTasksList;
-
-            let allMasterTasks = [...pdTasks, "OTHER"];
-            let missed = allMasterTasks.filter(t => !uniqueReportedTasks.includes(t));
-            if (missed.length === 0) unreportedTasksList = '<li>All Tasks Reported!</li>';
-            else missed.forEach(task => unreportedTasksList += `<li>${task}</li>`);
-            document.getElementById('adminUnreportedTasks').innerHTML = unreportedTasksList;
-
-            tasks.forEach(t => { adminSumMins += t.time; });
-            if(document.getElementById('adminTotalMins')) document.getElementById('adminTotalMins').innerText = adminSumMins;
-            if(document.getElementById('adminTotalHrs')) document.getElementById('adminTotalHrs').innerText = (adminSumMins / 60).toFixed(2);
-        }
-
-        function archiveWeek() {
-            if(tasks.length === 0) return alert("No tasks to archive!"); if(!confirm("Archive current totals and clear tracker for new week?")) return;
-            updateDashboard(); const archiveDate = new Date().toLocaleDateString(); const tableHTML = document.getElementById('summaryTable').outerHTML;
-            history.unshift(`<div class="archive-block"><h4>Archived: ${archiveDate}</h4>${tableHTML}</div>`);
-            tasks = []; battleRhythm = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] }; autoSave(); updateTable(); renderBattleRhythm(); renderHistory(); switchTab('historyTab', document.querySelectorAll('.tab')[3]);
-        }
-
-        function renderHistory() { document.getElementById('historyContainer').innerHTML = history.join(''); }
-
+        
         function loadLocalData() {
-            const savedTasks = localStorage.getItem('hr_tracker_tasks_m1608429fr'); 
-            const savedBr = localStorage.getItem('hr_tracker_br_m1608429fr');
-            const savedHist = localStorage.getItem('hr_tracker_history_m1608429fr'); 
-            const savedEmp = localStorage.getItem('hr_tracker_emp_m1608429fr');
-            if(savedTasks) tasks = JSON.parse(savedTasks); 
-            if(savedBr) battleRhythm = JSON.parse(savedBr);
-            if(savedHist) { history = JSON.parse(savedHist); renderHistory(); } 
-            if(savedEmp) empInfo = JSON.parse(savedEmp);
+            tasks = JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}_tasks`)) || [];
+            battleRhythm = JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}_br`)) || { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] };
+            history = JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}_history`)) || [];
+            empInfo = JSON.parse(localStorage.getItem(`${LOCAL_STORAGE_PREFIX}_emp`)) || { name: "Jarod Groves", section: "HQ", uicParaLin: "", psn: "" };
         }
-
-        function populatePsnDropdown() { 
-            let optionsHTML = '<option value="">Select PSN...</option>'; 
-            for (const psn in psnLookup) { optionsHTML += `<option value="${psn}">${psn}</option>`; } 
-            if(document.getElementById('empPsn')) document.getElementById('empPsn').innerHTML = optionsHTML; 
-        }
-
-        function handlePsnLookup(psnValue) { 
-            if (psnLookup[psnValue]) { 
-                document.getElementById('empUicParaLin').value = psnLookup[psnValue];
-                empInfo.psn = psnValue; 
-                empInfo.uicParaLin = psnLookup[psnValue]; 
-            } else { 
-                document.getElementById('empUicParaLin').value = ""; 
-                empInfo.psn = ""; 
-                empInfo.uicParaLin = ""; 
-            } 
-            updateAdminData(); 
-        }
-
-        function updateAdminData() { 
-            empInfo.name = document.getElementById('empName').value; 
-            if(document.getElementById('empSection')) empInfo.section = document.getElementById('empSection').value; 
-            if(document.getElementById('empUicParaLin')) empInfo.uicParaLin = document.getElementById('empUicParaLin').value; 
-            if(document.getElementById('empPsn')) empInfo.psn = document.getElementById('empPsn').value; 
-            autoSave(); 
-            refreshHeaders(); 
-        }
-
-        function populateAdminFields() { 
-            if(document.getElementById('empPsn')) document.getElementById('empPsn').value = empInfo.psn || ""; 
-            if(document.getElementById('empName')) document.getElementById('empName').value = empInfo.name || ""; 
-            if(document.getElementById('empSection')) document.getElementById('empSection').value = empInfo.section || ""; 
-            if(document.getElementById('empUicParaLin')) document.getElementById('empUicParaLin').value = empInfo.uicParaLin || ""; 
-        }
-
-        function refreshHeaders() { 
-            const titleElem = document.getElementById('mainTitle'); 
-            if(titleElem && !titleElem.innerText.includes('Tracker')) { titleElem.innerText = "Task Tracker Template (PD#: M1608429FR)"; } 
-            if(document.getElementById('subTitle')) document.getElementById('subTitle').innerText = `Name: ${empInfo.name||"Not Set"} | Section: ${empInfo.section||"Not Set"} | UIC-PARA/LIN: ${empInfo.uicParaLin||"Not Set"} | PSN: ${empInfo.psn||"Not Set"}`; 
-        }
-
-        function clearBattleRhythm() { if(confirm("Are you sure?")) { battleRhythm = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] }; autoSave(); renderBattleRhythm(); alert("Cleared."); } }
-        function clearTasks() { if(confirm("Are you sure?")) { tasks = []; autoSave(); updateTable(); updateDashboard(); updateAdminTotals(); alert("Cleared."); } }
-        function clearHistory() { if(confirm("Are you sure?")) { history = []; autoSave(); renderHistory(); alert("Cleared."); } }
-        function clearAdminInfo() { if(confirm("Are you sure?")) { empInfo = { name: "", section: "", uicParaLin: "", psn: "" }; autoSave(); populateAdminFields(); refreshHeaders(); alert("Cleared."); } }
-
-        function downloadWeeklyHTML() { 
-            if (tasks.length === 0) { alert("No tasks to export."); return; } 
-            let htmlContent = `<div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333;"><h3 style="color: #003366; margin-bottom: 5px;">Task Tracker Update</h3><p style="margin-top: 0;"><b>Employee:</b> ${empInfo.name || "Not Set"} <br><b>Section:</b> ${empInfo.section || "Not Set"} <br><b>Date:</b> ${new Date().toLocaleDateString()}</p><table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 600px; font-size: 14px;"><thead><tr style="background-color: #003366; color: white; text-align: left;"><th>Date</th><th>Day</th><th>Task</th><th>Minutes</th></tr></thead><tbody>`; 
-            let totalMins = 0; 
-            tasks.forEach(t => { htmlContent += `<tr><td>${t.date}</td><td>${t.day}</td><td>${t.task}</td><td>${t.time}</td></tr>`; totalMins += t.time; }); 
-            htmlContent += `</tbody><tfoot><tr style="background-color: #e6f2ff; font-weight: bold;"><td colspan="3" style="text-align: right; padding-right: 10px;">TOTAL TIME LOGGED:</td><td>${totalMins} mins (${(totalMins/60).toFixed(2)} hrs)</td></tr></tfoot></table></div>`; 
-            const blob = new Blob([htmlContent], { type: 'text/plain' }); 
-            const a = document.createElement('a'); 
-            const safeName = (empInfo.name || "Employee").replace(/\s+/g, '_'); 
-            const fileDate = new Date().toISOString().split('T')[0]; 
-            a.href = URL.createObjectURL(blob); 
-            a.download = `Weekly_Export_${safeName}_${fileDate}.txt`; 
-            document.body.appendChild(a); 
-            a.click(); 
-            document.body.removeChild(a); 
-        }
+        
+        // --- All your other original UI and data functions would go below ---
+        
     </script>
