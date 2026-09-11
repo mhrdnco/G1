@@ -1,0 +1,11 @@
+{
+  "last_updated": "11 SEP 2026",
+  "updated_by": "SFC ALVARADO",
+  "slots": [
+    {"id": "01", "name": "Jarrod Groves", "dept": "HQ", "vacant": false, "link": "hq1.html"},
+    {"id": "02", "name": "Timothy Webster", "dept": "HQ", "vacant": false, "link": "hq2.html"},
+    {"id": "03", "name": "Miguel Mattei", "dept": "SMB", "vacant": false, "link": "smb4.html"},
+    {"id": "14", "name": "[VACANT 1]", "dept": "EPSB", "vacant": true, "link": "epsb2.html"},
+    {"id": "15", "name": "[VACANT 2]", "dept": "EPSB", "vacant": true, "link": "epsb4.html"}
+  ]
+}
