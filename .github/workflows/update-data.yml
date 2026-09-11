@@ -1,0 +1,33 @@
+name: Update Task Database
+
+on:
+  repository_dispatch:
+    types: [submit_task_data]
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Append Submission to data.json
+        run: |
+          # Create data.json if it doesn't exist
+          if [ ! -f data.json ] || [ ! -s data.json ]; then
+            echo "[]" > data.json
+          fi
+          
+          # Use jq to append payload to the JSON array
+          echo '${{ toJson(github.event.client_payload) }}' > new_entry.json
+          jq '. += [input]' data.json new_entry.json > temp.json
+          mv temp.json data.json
+          rm new_entry.json
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "HQ Automation"
+          git config --global user.email "action@github.com"
+          git add data.json
+          git commit -m "System: Update data.json from ${{ github.event.client_payload.name }}"
+          git push
