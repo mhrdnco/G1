@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Tracker - PD#: M1470486FR</title>
+    <title>Task Tracker - PD#: M1352909FR</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
@@ -68,6 +68,7 @@
             text-align: center;
         }
         .btn-transmit:hover { background-color: #cc0000; }
+        .btn-transmit:disabled { background-color: #888; border-color: #666; box-shadow: none; animation: none; cursor: not-allowed; }
         @keyframes pulse-red {
             0% { box-shadow: 0 0 3px red; }
             50% { box-shadow: 0 0 8px red, 0 0 12px darkred; }
@@ -79,7 +80,7 @@
 
     <div class="header">
         <button class="master-save-btn" onclick="manualSave()">💾 Master Save</button>
-        <h2 id="mainTitle">Task Tracker Template (PD#: M1470486FR)</h2>
+        <h2 id="mainTitle">Task Tracker Template (PD#: M1352909FR)</h2>
         <h4 id="subTitle">Name: Not Set | Section: Not Set | UIC-PARA/LIN: Not Set | PSN: Not Set</h4>
     </div>
 
@@ -98,13 +99,21 @@
             <div class="form-group flex-child">
                 <label>Day of the Week</label>
                 <select id="brDay">
-                    <option value="Monday">Monday</option><option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option><option value="Thursday">Thursday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
                     <option value="Friday">Friday</option>
                 </select>
             </div>
-            <div class="form-group flex-child"><label>Task</label><select id="brTaskSelect" onchange="checkBrOther()"></select></div>
-            <div class="form-group flex-child hidden" id="brOtherDiv"><label>Describe</label><input type="text" id="brOtherTask"></div>
+            <div class="form-group flex-child">
+                <label>Task</label>
+                <select id="brTaskSelect" onchange="checkBrOther()"></select>
+            </div>
+            <div class="form-group flex-child hidden" id="brOtherDiv">
+                <label>Describe</label>
+                <input type="text" id="brOtherTask">
+            </div>
             <div class="form-group flex-child" style="display: flex; align-items: flex-end;">
                 <button onclick="addRhythmTask()">Add to Calendar</button>
             </div>
@@ -123,24 +132,51 @@
         <div class="flex-container">
             <div class="flex-child" style="max-width: 400px; background: #fafafa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
                 <h3>Log Executed Task</h3>
-                <div class="form-group"><label>Date</label><input type="date" id="taskDate" required></div>
-                <div class="form-group"><label>Day</label>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="taskDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Day</label>
                     <select id="taskDay" required>
-                        <option value="Monday">Monday</option><option value="Tuesday">Tuesday</option>
-                        <option value="Wednesday">Wednesday</option><option value="Thursday">Thursday</option><option value="Friday">Friday</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Task</label><select id="taskSelect" onchange="checkTrackerOther()" required></select></div>
-                <div class="form-group hidden" id="trackerOtherDiv"><label>Describe</label><input type="text" id="trackerOtherTask"></div>
-                <div class="form-group"><label>Minutes</label><input type="number" id="taskTime" min="1" required></div>
+                <div class="form-group">
+                    <label>Task</label>
+                    <select id="taskSelect" onchange="checkTrackerOther()" required></select>
+                </div>
+                <div class="form-group hidden" id="trackerOtherDiv">
+                    <label>Describe</label>
+                    <input type="text" id="trackerOtherTask">
+                </div>
+                <div class="form-group">
+                    <label>Minutes</label>
+                    <input type="number" id="taskTime" min="1" required>
+                </div>
                 <button onclick="addTask()">Submit Task</button>
             </div>
             <div class="flex-child">
                 <div class="tracker-header-wrap">
                     <h3 style="margin: 0;">Logged Tasks (Current Week)</h3>
-                    <button class="btn-transmit" onclick="transmitToGitHubAction()">🚀 TRANSMIT TO HQ</button>
+                    <button id="transmitBtn" class="btn-transmit" onclick="transmitToGitHubAction()">🚀 TRANSMIT TO HQ</button>
                 </div>
-                <table id="taskTable"><thead><tr><th>Date</th><th>Day</th><th>Task</th><th>Minutes</th><th>Action</th></tr></thead><tbody></tbody></table>
+                <table id="taskTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Task</th>
+                            <th>Minutes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -152,12 +188,26 @@
             <div class="flex-child">
                 <h3>Weekly Summary</h3>
                 <table id="summaryTable">
-                    <thead><tr><th>Task Category</th><th>Minutes</th><th>Hours</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Task Category</th>
+                            <th>Minutes</th>
+                            <th>Hours</th>
+                        </tr>
+                    </thead>
                     <tbody></tbody>
-                    <tfoot><tr class="total-row"><td>GRAND TOTAL</td><td id="totalMins">0</td><td id="totalHrs">0.00</td></tr></tfoot>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td>GRAND TOTAL</td>
+                            <td id="totalMins">0</td>
+                            <td id="totalHrs">0.00</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
-            <div class="flex-child chart-container"><canvas id="taskPieChart"></canvas></div>
+            <div class="flex-child chart-container">
+                <canvas id="taskPieChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -172,8 +222,10 @@
         <div class="admin-panel">
             <h3>Administrative Controls</h3>
             <div class="flex-container">
-                <div class="form-group flex-child"><label>PSN</label><select id="empPsn" onchange="handlePsnLookup(this.value)"></select></div>
-                
+                <div class="form-group flex-child">
+                    <label>PSN</label>
+                    <select id="empPsn" onchange="handlePsnLookup(this.value)"></select>
+                </div>
                 <div class="form-group flex-child">
                     <label>Name</label>
                     <input type="text" id="empName" list="nameList" onchange="updateAdminData()" placeholder="Select or type name...">
@@ -194,7 +246,6 @@
                         <option value="Oscar Jimenez"></option>
                     </datalist>
                 </div>
-                
                 <div class="form-group flex-child">
                     <label>Section</label>
                     <select id="empSection" onchange="updateAdminData()">
@@ -206,31 +257,48 @@
                         <option value="STB">STB</option>
                     </select>
                 </div>
-                
                 <div class="form-group flex-child">
                     <label>UIC-PARA/LIN</label>
                     <input type="text" id="empUicParaLin" onchange="updateAdminData()">
                 </div>
             </div>
         </div>
-
         <div class="variance-panel">
             <h3>Task Variance Analysis (Current Week)</h3>
             <p style="font-size: 0.9em; color: #555;">Cross-references execution against master tasks.</p>
             <div class="flex-container">
-                <div class="flex-child" style="background:#e8f4f8; padding:10px; border-radius:5px;"><h4 style="margin-top:0;">📋 Master Tasks</h4><ul id="adminAllTasks" class="variance-list"></ul></div>
-                <div class="flex-child" style="background:#e8f8eb; padding:10px; border-radius:5px;"><h4 style="margin-top:0;">✅ Reported This Week</h4><ul id="adminReportedTasks" class="variance-list"></ul></div>
-                <div class="flex-child" style="background:#f8e8e8; padding:10px; border-radius:5px;"><h4 style="margin-top:0;">⚠️ Unreported / Missed</h4><ul id="adminUnreportedTasks" class="variance-list"></ul></div>
+                <div class="flex-child" style="background:#e8f4f8; padding:10px; border-radius:5px;">
+                    <h4 style="margin-top:0;">📋 Master Tasks</h4>
+                    <ul id="adminAllTasks" class="variance-list"></ul>
+                </div>
+                <div class="flex-child" style="background:#e8f8eb; padding:10px; border-radius:5px;">
+                    <h4 style="margin-top:0;">✅ Reported This Week</h4>
+                    <ul id="adminReportedTasks" class="variance-list"></ul>
+                </div>
+                <div class="flex-child" style="background:#f8e8e8; padding:10px; border-radius:5px;">
+                    <h4 style="margin-top:0;">⚠️ Unreported / Missed</h4>
+                    <ul id="adminUnreportedTasks" class="variance-list"></ul>
+                </div>
             </div>
         </div>
-
         <h3 style="margin-top:30px;">Current Employee Totals</h3>
         <table id="adminTotalTable">
-            <thead><tr><th>Task</th><th>Minutes</th><th>Hours</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Minutes</th>
+                    <th>Hours</th>
+                </tr>
+            </thead>
             <tbody></tbody>
-            <tfoot><tr class="total-row"><td>TOTAL ASSIGNED WORK</td><td id="adminTotalMins">0</td><td id="adminTotalHrs">0.00</td></tr></tfoot>
+            <tfoot>
+                <tr class="total-row">
+                    <td>TOTAL ASSIGNED WORK</td>
+                    <td id="adminTotalMins">0</td>
+                    <td id="adminTotalHrs">0.00</td>
+                </tr>
+            </tfoot>
         </table>
-
         <div class="danger-zone">
             <h3 style="color: #dc3545; margin-top: 0;">DATA MANAGEMENT</h3>
             <p style="margin-bottom: 15px;">Use the buttons below to clear specific sections of data. This action is permanent.</p>
@@ -244,7 +312,7 @@
     </div>
 
     <script>
-        // Exact PSN mapping provided
+        // PSN Mapping Database
         const psnLookup = {
             "A0485155": "W3VYAA-110-01",
             "A0398461": "W3VYAA-110D-03",
@@ -264,26 +332,24 @@
             "A0398464": "W3VYAA-110E-02"
         };
 
-        // Extracted Tasks from PD#: M1470486FR (GS-12 SACO)
+        // Master Position Description Tasks (GS-09 HR Spec)
         const pdTasks = [
-            "Executive Admin Control & Direction",
-            "Review & Analyze Staff Actions/Inquiries",
-            "Research & Fact-Finding",
-            "Assign & Prioritize Staff Actions",
-            "Monitor Actions & QA Review",
-            "Develop/Prepare Admin Policies & SOPs",
-            "Review/Interpret Regulations & Policies",
-            "Senior Exec Admin & Technical Advising",
-            "Briefings & Meetings w/ Senior Leaders",
-            "Advise & Train Personnel",
-            "TMT / Action Tracking Management"
+            "MA & IA Management / Operations",
+            "MODS / PROFIS / PDS System Updates",
+            "DMD Meetings & Review",
+            "Identify / Source MA and IA Personnel",
+            "ARTS Taskers Coordination",
+            "PROFIS / PDS Reclamas Processing (TOPMIS/EDAS)",
+            "PROFIS Replacement Tracker (PRT) Updates",
+            "Reports, Statistical Graphs & Briefings",
+            "Conference & Training Assistance"
         ];
 
         let tasks = [];
         let battleRhythm = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] };
         let history = [];
         let empInfo = { name: "", section: "", uicParaLin: "", psn: "" };
-        let pieChart;
+        let pieChart = null;
 
         window.onload = function() {
             populatePsnDropdown();
@@ -305,19 +371,24 @@
             document.getElementById('taskSelect').innerHTML = optionsHTML;
 
             let allTasksList = '';
-            pdTasks.forEach(task => allTasksList += `<li>${task}</li>`);
+            pdTasks.forEach(task => {
+                allTasksList += `<li>${task}</li>`;
+            });
             allTasksList += `<li>OTHER</li>`;
             document.getElementById('adminAllTasks').innerHTML = allTasksList;
         }
 
         function autoSave() {
-            localStorage.setItem('hr_tracker_tasks_m1470486fr', JSON.stringify(tasks));
-            localStorage.setItem('hr_tracker_br_m1470486fr', JSON.stringify(battleRhythm));
-            localStorage.setItem('hr_tracker_history_m1470486fr', JSON.stringify(history));
-            localStorage.setItem('hr_tracker_emp_m1470486fr', JSON.stringify(empInfo));
+            localStorage.setItem('hr_tracker_tasks_m1352909fr', JSON.stringify(tasks));
+            localStorage.setItem('hr_tracker_br_m1352909fr', JSON.stringify(battleRhythm));
+            localStorage.setItem('hr_tracker_history_m1352909fr', JSON.stringify(history));
+            localStorage.setItem('hr_tracker_emp_m1352909fr', JSON.stringify(empInfo));
         }
 
-        function manualSave() { autoSave(); alert("Data manually saved successfully!"); }
+        function manualSave() { 
+            autoSave(); 
+            alert("Data manually saved successfully!"); 
+        }
 
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -346,15 +417,16 @@
             const day = document.getElementById('brDay').value;
             let task = document.getElementById('brTaskSelect').value;
             if (task === 'OTHER') { 
-                const other = document.getElementById('brOtherTask').value; 
-                if(!other) return alert("Describe task."); 
+                const other = document.getElementById('brOtherTask').value.trim(); 
+                if(!other) return alert("Please describe the task."); 
                 task = "OTHER: " + other; 
             }
-            if(!task) return alert("Select a task.");
+            if(!task) return alert("Please select a task.");
             battleRhythm[day].push(task); 
             autoSave(); 
             renderBattleRhythm(); 
             document.getElementById('brTaskSelect').value = ''; 
+            document.getElementById('brOtherTask').value = '';
             checkBrOther();
         }
 
@@ -367,18 +439,22 @@
         function renderBattleRhythm() {
             Object.keys(battleRhythm).forEach(day => {
                 const container = document.querySelector(`#cal-${day} .tasks`); 
-                container.innerHTML = '';
-                battleRhythm[day].forEach((task, index) => { 
-                    container.innerHTML += `<div class="br-task">${task} <span class="delete-btn" onclick="removeRhythmTask('${day}', ${index})">X</span></div>`; 
-                });
+                if (container) {
+                    container.innerHTML = '';
+                    battleRhythm[day].forEach((task, index) => { 
+                        container.innerHTML += `<div class="br-task">${task} <span class="delete-btn" onclick="removeRhythmTask('${day}', ${index})">X</span></div>`; 
+                    });
+                }
             });
         }
 
         document.getElementById('taskDate').addEventListener('change', function() {
             const date = new Date(this.value); 
-            const dayOfWeek = new Date(date.getTime() + Math.abs(date.getTimezoneOffset() * 60000)).toLocaleDateString('en-US', { weekday: 'long' });
-            if(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(dayOfWeek)) {
-                document.getElementById('taskDay').value = dayOfWeek;
+            if (!isNaN(date.getTime())) {
+                const dayOfWeek = new Date(date.getTime() + Math.abs(date.getTimezoneOffset() * 60000)).toLocaleDateString('en-US', { weekday: 'long' });
+                if(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(dayOfWeek)) {
+                    document.getElementById('taskDay').value = dayOfWeek;
+                }
             }
         });
 
@@ -390,16 +466,22 @@
             const date = document.getElementById('taskDate').value; 
             const day = document.getElementById('taskDay').value;
             let task = document.getElementById('taskSelect').value; 
-            const time = parseInt(document.getElementById('taskTime').value);
+            const time = parseInt(document.getElementById('taskTime').value, 10);
+
             if (task === 'OTHER') { 
-                const other = document.getElementById('trackerOtherTask').value; 
-                if(!other) return alert("Describe task."); 
+                const other = document.getElementById('trackerOtherTask').value.trim(); 
+                if(!other) return alert("Please describe the task."); 
                 task = "OTHER: " + other; 
             }
-            if (!date || !task || !time) return alert("Fill out all fields.");
+
+            if (!date || !day || !task || isNaN(time) || time <= 0) {
+                return alert("Please fill out all required task fields with valid information.");
+            }
+
             tasks.push({ date, day, task, time }); 
             autoSave(); 
             document.getElementById('taskSelect').value = ''; 
+            document.getElementById('trackerOtherTask').value = '';
             document.getElementById('taskTime').value = ''; 
             checkTrackerOther(); 
             updateTable();
@@ -426,9 +508,11 @@
                 summary[t.task] = (summary[t.task] || 0) + t.time; 
                 sumMins += t.time; 
             });
+
             const tbody = document.querySelector('#summaryTable tbody'); 
             tbody.innerHTML = ''; 
-            let labels = [], data = [];
+            let labels = [];
+            let data = [];
             for (const [key, value] of Object.entries(summary)) { 
                 labels.push(key); 
                 data.push(value); 
@@ -438,7 +522,9 @@
             document.getElementById('totalHrs').innerText = (sumMins / 60).toFixed(2);
             
             const ctx = document.getElementById('taskPieChart').getContext('2d');
-            if (pieChart) pieChart.destroy(); 
+            if (pieChart) {
+                pieChart.destroy(); 
+            }
             pieChart = new Chart(ctx, { 
                 type: 'pie', 
                 data: { 
@@ -448,7 +534,12 @@
                         backgroundColor: ['#002244', '#004080', '#0059b3', '#3385ff', '#80b3ff', '#ffcc00', '#e6b800', '#b38f00', '#665191'] 
                     }] 
                 }, 
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } } 
+                options: { 
+                    responsive: true, 
+                    plugins: { 
+                        legend: { position: 'bottom' } 
+                    } 
+                } 
             });
         }
 
@@ -461,14 +552,20 @@
                 return t.task;
             }))];
 
-            if (uniqueReportedTasks.length === 0) reportedTasksList = '<li>None</li>';
-            else uniqueReportedTasks.forEach(task => reportedTasksList += `<li>${task}</li>`);
+            if (uniqueReportedTasks.length === 0) {
+                reportedTasksList = '<li>None</li>';
+            } else {
+                uniqueReportedTasks.forEach(task => { reportedTasksList += `<li>${task}</li>`; });
+            }
             document.getElementById('adminReportedTasks').innerHTML = reportedTasksList;
 
             let allMasterTasks = [...pdTasks, "OTHER"];
             let missed = allMasterTasks.filter(t => !uniqueReportedTasks.includes(t));
-            if (missed.length === 0) unreportedTasksList = '<li>All Tasks Reported!</li>';
-            else missed.forEach(task => unreportedTasksList += `<li>${task}</li>`);
+            if (missed.length === 0) {
+                unreportedTasksList = '<li>All Tasks Reported!</li>';
+            } else {
+                missed.forEach(task => { unreportedTasksList += `<li>${task}</li>`; });
+            }
             document.getElementById('adminUnreportedTasks').innerHTML = unreportedTasksList;
 
             tasks.forEach(t => { adminSumMins += t.time; });
@@ -497,14 +594,22 @@
         }
 
         function loadLocalData() {
-            const savedTasks = localStorage.getItem('hr_tracker_tasks_m1470486fr'); 
-            const savedBr = localStorage.getItem('hr_tracker_br_m1470486fr');
-            const savedHist = localStorage.getItem('hr_tracker_history_m1470486fr'); 
-            const savedEmp = localStorage.getItem('hr_tracker_emp_m1470486fr');
-            if(savedTasks) tasks = JSON.parse(savedTasks); 
-            if(savedBr) battleRhythm = JSON.parse(savedBr);
-            if(savedHist) { history = JSON.parse(savedHist); renderHistory(); } 
-            if(savedEmp) empInfo = JSON.parse(savedEmp);
+            try {
+                const savedTasks = localStorage.getItem('hr_tracker_tasks_m1352909fr'); 
+                const savedBr = localStorage.getItem('hr_tracker_br_m1352909fr');
+                const savedHist = localStorage.getItem('hr_tracker_history_m1352909fr'); 
+                const savedEmp = localStorage.getItem('hr_tracker_emp_m1352909fr');
+
+                if(savedTasks) tasks = JSON.parse(savedTasks); 
+                if(savedBr) battleRhythm = JSON.parse(savedBr);
+                if(savedHist) { 
+                    history = JSON.parse(savedHist); 
+                    renderHistory(); 
+                } 
+                if(savedEmp) empInfo = JSON.parse(savedEmp);
+            } catch (e) {
+                console.error("Local data parsing exception:", e);
+            }
         }
 
         function populatePsnDropdown() { 
@@ -529,9 +634,9 @@
         }
 
         function updateAdminData() { 
-            empInfo.name = document.getElementById('empName').value; 
+            empInfo.name = document.getElementById('empName').value.trim(); 
             if(document.getElementById('empSection')) empInfo.section = document.getElementById('empSection').value; 
-            if(document.getElementById('empUicParaLin')) empInfo.uicParaLin = document.getElementById('empUicParaLin').value; 
+            if(document.getElementById('empUicParaLin')) empInfo.uicParaLin = document.getElementById('empUicParaLin').value.trim(); 
             if(document.getElementById('empPsn')) empInfo.psn = document.getElementById('empPsn').value; 
             autoSave(); 
             refreshHeaders(); 
@@ -546,98 +651,126 @@
 
         function refreshHeaders() { 
             const titleElem = document.getElementById('mainTitle'); 
-            if(titleElem && !titleElem.innerText.includes('Tracker')) { titleElem.innerText = "Task Tracker Template (PD#: M1470486FR)"; } 
+            if(titleElem && !titleElem.innerText.includes('Tracker')) { 
+                titleElem.innerText = "Task Tracker Template (PD#: M1352909FR)"; 
+            } 
             if(document.getElementById('subTitle')) {
-                document.getElementById('subTitle').innerText = `Name: ${empInfo.name||"Not Set"} | Section: ${empInfo.section||"Not Set"} | UIC-PARA/LIN: ${empInfo.uicParaLin||"Not Set"} | PSN: ${empInfo.psn||"Not Set"}`; 
+                document.getElementById('subTitle').innerText = `Name: ${empInfo.name || "Not Set"} | Section: ${empInfo.section || "Not Set"} | UIC-PARA/LIN: ${empInfo.uicParaLin || "Not Set"} | PSN: ${empInfo.psn || "Not Set"}`; 
             }
         }
 
         function clearBattleRhythm() { 
-            if(confirm("Are you sure?")) { 
+            if(confirm("Are you sure you want to clear the Battle Rhythm?")) { 
                 battleRhythm = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] }; 
                 autoSave(); 
                 renderBattleRhythm(); 
-                alert("Cleared."); 
+                alert("Battle Rhythm cleared."); 
             } 
         }
 
         function clearTasks() { 
-            if(confirm("Are you sure?")) { 
+            if(confirm("Are you sure you want to clear all logged tasks?")) { 
                 tasks = []; 
                 autoSave(); 
                 updateTable(); 
                 updateDashboard(); 
                 updateAdminTotals(); 
-                alert("Cleared."); 
+                alert("Task Tracker cleared."); 
             } 
         }
 
         function clearHistory() { 
-            if(confirm("Are you sure?")) { 
+            if(confirm("Are you sure you want to clear historical archives?")) { 
                 history = []; 
                 autoSave(); 
                 renderHistory(); 
-                alert("Cleared."); 
+                alert("Historical data cleared."); 
             } 
         }
 
         function clearAdminInfo() { 
-            if(confirm("Are you sure?")) { 
+            if(confirm("Are you sure you want to clear admin configuration settings?")) { 
                 empInfo = { name: "", section: "", uicParaLin: "", psn: "" }; 
                 autoSave(); 
                 populateAdminFields(); 
                 refreshHeaders(); 
-                alert("Cleared."); 
+                alert("Admin profile cleared."); 
             } 
         }
 
-        // OPTION B: Transmit safely to repository without exposing secret API tokens
-        async function transmitToGitHubAction() { 
-            if (tasks.length === 0) { 
-                alert("No tasks to transmit."); 
-                return; 
-            } 
-            if (!empInfo.name || empInfo.name.trim() === "") { 
-                alert("Please set employee Name in ADMIN settings before transmitting."); 
-                return; 
+        /**
+         * OPTION B ARCHITECTURE: SECURE REPOSITORY DISPATCH
+         * Sends user metadata and weekly task execution array to the central GitHub Action workflow.
+         */
+        async function transmitToGitHubAction() {
+            // Pre-flight UI Validations
+            if (!empInfo.name || empInfo.name.trim() === "" || empInfo.name === "Not Set") {
+                alert("Transmission Blocked: Employee Name must be configured in the ADMIN tab before transmitting to HQ.");
+                return;
             }
 
-            // Prepare payload
+            if (!tasks || tasks.length === 0) {
+                alert("Transmission Blocked: No executed tasks have been logged for transmission.");
+                return;
+            }
+
+            // Zero-Trust Session-Scoped Secret Prompting
+            let authToken = sessionStorage.getItem('gh_dispatch_token');
+            if (!authToken) {
+                authToken = prompt("Enter your GitHub Personal Access Token (PAT) for HQ Dispatch:\n(Token is stored in active browser session memory only)");
+                if (!authToken || authToken.trim() === "") {
+                    alert("Transmission Aborted: An authorized GitHub Personal Access Token is required.");
+                    return;
+                }
+                sessionStorage.setItem('gh_dispatch_token', authToken.trim());
+            }
+
+            const transmitBtn = document.getElementById('transmitBtn');
+            const originalBtnText = transmitBtn.innerHTML;
+            transmitBtn.disabled = true;
+            transmitBtn.innerHTML = "⏳ TRANSMITTING...";
+
+            const targetEndpoint = "https://api.github.com/repos/mhrdnco/G1/dispatches";
+            const todayStr = new Date().toISOString().split('T')[0];
+
             const payload = {
                 event_type: "submit_task_data",
                 client_payload: {
-                    name: empInfo.name,
+                    employee_name: empInfo.name,
                     section: empInfo.section || "Not Set",
-                    uicParaLin: empInfo.uicParaLin || "Not Set",
+                    uic_para_lin: empInfo.uicParaLin || "Not Set",
                     psn: empInfo.psn || "Not Set",
-                    date: new Date().toISOString().split('T')[0],
+                    date: todayStr,
                     tasks: tasks
                 }
             };
 
-            // Target Repository Config: mhrdnco/G1
-            const owner = "mhrdnco";
-            const repo = "G1"; 
-            const url = `https://api.github.com/repos/${owner}/${repo}/dispatches`;
-
             try {
-                const response = await fetch(url, {
+                const response = await fetch(targetEndpoint, {
                     method: 'POST',
                     headers: {
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/vnd.github+json',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('gh_dispatch_token')}`
                     },
                     body: JSON.stringify(payload)
                 });
 
-                if (response.status === 204 || response.status === 200) {
-                    alert("🚀 Data dispatched successfully! HQ is processing your update now.");
+                if (response.status === 204 || response.ok) {
+                    alert(`✅ Transmission Successful!\n\nTask data for ${empInfo.name} has been dispatched to HQ repository workflow.`);
+                } else if (response.status === 401 || response.status === 403) {
+                    sessionStorage.removeItem('gh_dispatch_token');
+                    alert(`❌ Authorization Failure (HTTP ${response.status}):\nInvalid or expired GitHub Personal Access Token. Session token cleared.`);
                 } else {
-                    alert(`⚠️ Transmission returned status code: ${response.status}. Ensure GitHub repository dispatch is configured.`);
+                    const errResponse = await response.json().catch(() => ({}));
+                    alert(`❌ Dispatch Failed (HTTP ${response.status}):\n${errResponse.message || response.statusText}`);
                 }
-            } catch (error) {
-                console.error("Transmission error:", error);
-                alert("Failed to communicate with GitHub API.");
+            } catch (networkError) {
+                console.error("Dispatch Network Exception:", networkError);
+                alert(`⚠️ Network Error: Unable to reach GitHub API endpoint.\n${networkError.message}`);
+            } finally {
+                transmitBtn.disabled = false;
+                transmitBtn.innerHTML = originalBtnText;
             }
         }
     </script>
