@@ -1,58 +1,66 @@
-name: G1 G-Staff Task Tracker Dispatch Handler
+name: Update Data JSON
+
 on:
   repository_dispatch:
     types: [submit_task_data]
 
-jobs:
-  process_task_data:
-    name: Process Task Tracker Payload
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  append-data:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-      - name: Log Dispatch Metadata
-        run: |
-          echo "==== DISPATCH RECEIVED ===="
-          echo "Date: ${{ github.event.client_payload.date }}"
-          echo "Employee Name: ${{ github.event.client_payload.employee_name }}"
-          echo "PSN Identifier: ${{ github.event.client_payload.psn }}"
-          echo "Section Code: ${{ github.event.client_payload.section }}"
-          echo "UIC PARA-LIN: ${{ github.event.client_payload.uic_para_lin }}"
-          echo "==========================="
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Generate Task Report File
-        run: |
-          SAFE_NAME=$(echo "${{ github.event.client_payload.employee_name }}" | sed 's/ /_/g')
-          REPORT_DIR="reports/${{ github.event.client_payload.date }}"
-          mkdir -p "$REPORT_DIR"
-          
-          REPORT_FILE="$REPORT_DIR/${SAFE_NAME}_tasks.md"
-          
-          echo "# Weekly Task Execution Report" > "$REPORT_FILE"
-          echo "### **Employee Metadata**" >> "$REPORT_FILE"
-          echo "| Parameter | Value |" >> "$REPORT_FILE"
-          echo "|---|---|" >> "$REPORT_FILE"
-          echo "| **Name** | ${{ github.event.client_payload.employee_name }} |" >> "$REPORT_FILE"
-          echo "| **PSN** | ${{ github.event.client_payload.psn }} |" >> "$REPORT_FILE"
-          echo "| **Section** | ${{ github.event.client_payload.section }} |" >> "$REPORT_FILE"
-          echo "| **UIC-PARA/LIN** | ${{ github.event.client_payload.uic_para_lin }} |" >> "$REPORT_FILE"
-          echo "| **Date Transmitted** | ${{ github.event.client_payload.date }} |" >> "$REPORT_FILE"
-          echo "" >> "$REPORT_FILE"
-          echo "### **Logged Task Execution**" >> "$REPORT_FILE"
-          echo "| Execution Date | Day | Task Description | Allocated Minutes |" >> "$REPORT_FILE"
-          echo "|---|---|---|---|" >> "$REPORT_FILE"
-          echo '${{ toJson(github.event.client_payload.tasks) }}' | jq -r '.[] | "| \(.date) | \(.day) | \(.task) | \(.time) |"' >> "$REPORT_FILE"
-          echo "" >> "$REPORT_FILE"
-          echo "*Report generated dynamically via IL5 Secure Repository Dispatch API.*" >> "$REPORT_FILE"
-          
-          echo "REPORT_PATH=$REPORT_FILE" >> $GITHUB_ENV
+      - name: Append Task Data to data.json
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const dbPath = 'data.json';
+            
+            let database = [];
+            if (fs.existsSync(dbPath)) {
+              try {
+                const raw = fs.readFileSync(dbPath, 'utf8').trim();
+                database = raw ? JSON.parse(raw) : [];
+                if (!Array.isArray(database)) {
+                  database = [database];
+                }
+              } catch (e) {
+                console.log("Error reading data.json, initializing fresh array.");
+              }
+            }
+            
+            const payload = context.payload.client_payload;
+            
+            const newEntry = {
+              timestamp: new Date().toISOString(),
+              employee_name: payload.name,
+              section: payload.section,
+              uic_para_lin: payload.uicParaLin,
+              psn: payload.psn,
+              report_date: payload.date,
+              tasks_logged: payload.tasks
+            };
+            
+            database.push(newEntry);
+            fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), 'utf8');
+            console.log(`Successfully appended record for: ${payload.name}`);
 
-      - name: Commit & Push New Report
+      - name: Commit and Push
         run: |
-          git config --global user.name "G1 Dispatch Bot"
-          git config --global user.email "g1_bot@genai.mil"
-          git add reports/
-          git commit -m "docs: auto-log weekly task report for ${{ github.event.client_payload.employee_name }}" || echo "No changes to commit"
-          git push
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data.json
+          git commit -m "update: append task tracker record to data.json [skip ci]" || echo "No changes to commit"
+          git push origin main
