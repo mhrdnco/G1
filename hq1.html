@@ -296,7 +296,6 @@
                 optionsHTML += `<option value="${task}">${task}</option>`;
             });
             optionsHTML += '<option value="OTHER">OTHER</option>';
-
             document.getElementById('brTaskSelect').innerHTML = optionsHTML;
             document.getElementById('taskSelect').innerHTML = optionsHTML;
 
@@ -604,7 +603,7 @@
             };
 
             const owner = "mhrdnco";
-            const repo = "mhrdnco.github.io"; // Make sure to change to your repo name
+            const repo = "G1"; 
             const url = `https://api.github.com/repos/${owner}/${repo}/dispatches`;
 
             try {
