@@ -1,33 +1,58 @@
-name: Update Task Database
-
+name: G1 G-Staff Task Tracker Dispatch Handler
 on:
   repository_dispatch:
     types: [submit_task_data]
 
 jobs:
-  update-json:
+  process_task_data:
+    name: Process Task Tracker Payload
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Append Submission to data.json
+      - name: Log Dispatch Metadata
         run: |
-          # Create data.json if it doesn't exist
-          if [ ! -f data.json ] || [ ! -s data.json ]; then
-            echo "[]" > data.json
-          fi
+          echo "==== DISPATCH RECEIVED ===="
+          echo "Date: ${{ github.event.client_payload.date }}"
+          echo "Employee Name: ${{ github.event.client_payload.employee_name }}"
+          echo "PSN Identifier: ${{ github.event.client_payload.psn }}"
+          echo "Section Code: ${{ github.event.client_payload.section }}"
+          echo "UIC PARA-LIN: ${{ github.event.client_payload.uic_para_lin }}"
+          echo "==========================="
+
+      - name: Generate Task Report File
+        run: |
+          SAFE_NAME=$(echo "${{ github.event.client_payload.employee_name }}" | sed 's/ /_/g')
+          REPORT_DIR="reports/${{ github.event.client_payload.date }}"
+          mkdir -p "$REPORT_DIR"
           
-          # Use jq to append payload to the JSON array
-          echo '${{ toJson(github.event.client_payload) }}' > new_entry.json
-          jq '. += [input]' data.json new_entry.json > temp.json
-          mv temp.json data.json
-          rm new_entry.json
+          REPORT_FILE="$REPORT_DIR/${SAFE_NAME}_tasks.md"
+          
+          echo "# Weekly Task Execution Report" > "$REPORT_FILE"
+          echo "### **Employee Metadata**" >> "$REPORT_FILE"
+          echo "| Parameter | Value |" >> "$REPORT_FILE"
+          echo "|---|---|" >> "$REPORT_FILE"
+          echo "| **Name** | ${{ github.event.client_payload.employee_name }} |" >> "$REPORT_FILE"
+          echo "| **PSN** | ${{ github.event.client_payload.psn }} |" >> "$REPORT_FILE"
+          echo "| **Section** | ${{ github.event.client_payload.section }} |" >> "$REPORT_FILE"
+          echo "| **UIC-PARA/LIN** | ${{ github.event.client_payload.uic_para_lin }} |" >> "$REPORT_FILE"
+          echo "| **Date Transmitted** | ${{ github.event.client_payload.date }} |" >> "$REPORT_FILE"
+          echo "" >> "$REPORT_FILE"
+          echo "### **Logged Task Execution**" >> "$REPORT_FILE"
+          echo "| Execution Date | Day | Task Description | Allocated Minutes |" >> "$REPORT_FILE"
+          echo "|---|---|---|---|" >> "$REPORT_FILE"
+          echo '${{ toJson(github.event.client_payload.tasks) }}' | jq -r '.[] | "| \(.date) | \(.day) | \(.task) | \(.time) |"' >> "$REPORT_FILE"
+          echo "" >> "$REPORT_FILE"
+          echo "*Report generated dynamically via IL5 Secure Repository Dispatch API.*" >> "$REPORT_FILE"
+          
+          echo "REPORT_PATH=$REPORT_FILE" >> $GITHUB_ENV
 
-      - name: Commit and Push Changes
+      - name: Commit & Push New Report
         run: |
-          git config --global user.name "HQ Automation"
-          git config --global user.email "action@github.com"
-          git add data.json
-          git commit -m "System: Update data.json from ${{ github.event.client_payload.name }}"
+          git config --global user.name "G1 Dispatch Bot"
+          git config --global user.email "g1_bot@genai.mil"
+          git add reports/
+          git commit -m "docs: auto-log weekly task report for ${{ github.event.client_payload.employee_name }}" || echo "No changes to commit"
           git push
