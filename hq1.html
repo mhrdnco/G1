@@ -1,870 +1,1635 @@
-<script>
-(() => {
-  "use strict";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Task Tracker</title>
 
-  // Match these values to data.json and employee-catalogs.json.
-  const EMPLOYEE_NAME = "EXACT EMPLOYEE NAME";
-  const EMPLOYEE_SECTION = "HQ";
-
-  const API =
-    "https://api.github.com/repos/mhrdnco/G1/contents/data.json";
-
-  const BRANCH = "main";
-
-  const clean = value =>
-    String(value ?? "").trim().replace(/\s+/g, " ");
-
-  const normalize = value => clean(value).toLowerCase();
-
-  const matches = record =>
-    record &&
-    normalize(record.employee_name) === normalize(EMPLOYEE_NAME) &&
-    normalize(record.section) === normalize(EMPLOYEE_SECTION);
-
-  const cacheKey = "shared-tracker-v1:" + JSON.stringify([
-    location.pathname,
-    normalize(EMPLOYEE_NAME),
-    normalize(EMPLOYEE_SECTION)
-  ]);
-
-  const clone = value => JSON.parse(JSON.stringify(value));
-
-  const emptyRhythm = () => ({
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: []
-  });
-
-  let base = null;
-  let ready = false;
-  let dirty = false;
-  let busy = false;
-  let token = "";
-  let archivedTasks = [];
-
-  const originalRefresh = refreshHeaders;
-
-  const escapeHTML = value =>
-    String(value ?? "").replace(/[&<>"']/g, character => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[character]);
-
-  function status(message) {
-    document.getElementById("sharedStatus").textContent = message;
-  }
-
-  function currentState() {
-    return clone({
-      tasks,
-      battleRhythm,
-      history,
-      empInfo,
-      archivedTasks
-    });
-  }
-
-  function validTask(task) {
-    if (
-      !task ||
-      typeof task.task !== "string" ||
-      !clean(task.task) ||
-      !Number.isSafeInteger(task.time) ||
-      task.time <= 0 ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(task.date)
-    ) {
-      return false;
+  <style>
+    :root {
+      --navy: #17324d;
+      --teal: #167783;
+      --background: #f3f6fa;
+      --border: #dce4ed;
+      --text: #20364d;
+      --muted: #64758a;
     }
 
-    const date = new Date(task.date + "T00:00:00Z");
-
-    return (
-      Number.isFinite(date.getTime()) &&
-      date.toISOString().slice(0, 10) === task.date
-    );
-  }
-
-  function applyState(value) {
-    if (
-      !value ||
-      !Array.isArray(value.tasks) ||
-      !value.tasks.every(validTask) ||
-      !Array.isArray(value.history) ||
-      !value.history.every(item => typeof item === "string") ||
-      !value.empInfo ||
-      !value.battleRhythm ||
-      !Array.isArray(value.archivedTasks) ||
-      !value.archivedTasks.every(validTask)
-    ) {
-      throw new Error("Invalid saved tracker state.");
+    * {
+      box-sizing: border-box;
     }
 
-    for (const day of Object.keys(emptyRhythm())) {
-      if (
-        !Array.isArray(value.battleRhythm[day]) ||
-        !value.battleRhythm[day].every(item =>
-          typeof item === "string"
-        )
-      ) {
-        throw new Error("Invalid saved battle rhythm.");
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    header {
+      padding: 24px;
+      background: var(--navy);
+      color: white;
+      border-bottom: 4px solid #e5b74e;
+    }
+
+    header h1 {
+      margin: 0 0 10px;
+      font-size: 26px;
+    }
+
+    header p {
+      margin: 5px 0;
+      color: #cedbe8;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 21px;
+    }
+
+    h3 {
+      font-size: 17px;
+    }
+
+    p, li {
+      line-height: 1.6;
+    }
+
+    button, input, select {
+      font: inherit;
+      padding: 10px;
+      border: 1px solid #c7d4e1;
+      border-radius: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      background: white;
+      color: var(--text);
+    }
+
+    button {
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--teal);
+    }
+
+    button.primary,
+    nav button.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: white;
+    }
+
+    button.danger {
+      color: #a52828;
+      border-color: #dcb0b0;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    .toolbar, nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .day {
+      background: #f6f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 180px;
+    }
+
+    .day h3 {
+      margin-top: 0;
+    }
+
+    .rhythm-task {
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #e8f3f6;
+      border-radius: 6px;
+      overflow-wrap: anywhere;
+    }
+
+    .rhythm-task button {
+      margin-top: 8px;
+      padding: 5px 8px;
+    }
+
+    .notice {
+      background: #fff5dc;
+      border-left: 4px solid #d6a235;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    #status {
+      padding: 14px 16px;
+      background: #e9f3f7;
+      border-left: 4px solid var(--teal);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 11px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f4f7fa;
+      font-size: 13px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .metric {
+      background: #edf4f8;
+      padding: 18px;
+      border-radius: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      margin-top: 8px;
+    }
+
+    fieldset {
+      border: 0;
+      margin: 0;
+      padding: 0;
+      min-width: 0;
+    }
+
+    .archive {
+      border: 1px solid var(--border);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .grid, .two-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar {
+        grid-template-columns: 1fr 1fr;
       }
     }
 
-    tasks = clone(value.tasks);
-    battleRhythm = clone(value.battleRhythm);
-    history = clone(value.history);
-    archivedTasks = clone(value.archivedTasks);
-
-    empInfo = {
-      ...value.empInfo,
-      name: EMPLOYEE_NAME,
-      section: EMPLOYEE_SECTION
-    };
-  }
-
-  function repaint() {
-    populateAdminFields();
-    originalRefresh();
-    renderBattleRhythm();
-    updateTable();
-    updateAdminTotals();
-    renderHistory();
-
-    if (
-      document.getElementById("dashboardTab")
-        .classList.contains("active")
-    ) {
-      updateDashboard();
-    }
-  }
-
-  function cacheDraft() {
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify({
-        base,
-        dirty,
-        value: currentState()
-      }));
-    } catch {
-      status(
-        "Browser backup failed. Use Save Shared Changes to record your work."
-      );
-    }
-  }
-
-  function signature(records) {
-    // A changed employee report invalidates an older browser draft.
-    return JSON.stringify(records.filter(matches));
-  }
-
-  function decodeContent(content) {
-    const bytes = Uint8Array.from(
-      atob(content.replace(/\s/g, "")),
-      character => character.charCodeAt(0)
-    );
-
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  }
-
-  function encodeContent(content) {
-    let binary = "";
-
-    for (const byte of new TextEncoder().encode(content)) {
-      binary += String.fromCharCode(byte);
-    }
-
-    return btoa(binary);
-  }
-
-  async function readDatabase() {
-    const response = await fetch(API + "?ref=" + BRANCH, {
-      cache: "no-store",
-      headers: {
-        Accept: "application/vnd.github+json",
-        ...(token ? { Authorization: "Bearer " + token } : {})
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        "Cannot read shared data (HTTP " + response.status + ")."
-      );
-    }
-
-    const file = await response.json();
-
-    if (
-      file.encoding !== "base64" ||
-      typeof file.content !== "string"
-    ) {
-      throw new Error(
-        "Shared file is too large or is not a supported file."
-      );
-    }
-
-    const records = JSON.parse(decodeContent(file.content));
-
-    if (!Array.isArray(records)) {
-      throw new Error("data.json must contain an array.");
-    }
-
-    return {
-      records,
-      sha: file.sha
-    };
-  }
-
-  function restoreReports(records) {
-    const ownReports = records.filter(matches);
-    const latest = ownReports.at(-1);
-
-    if (latest?.tracker_state) {
-      applyState(latest.tracker_state);
-      return;
-    }
-
-    // Do not silently combine old workflow reports with newer full states.
-    if (ownReports.some(report => report.tracker_state)) {
-      throw new Error(
-        "A legacy workflow report was added after a full shared save. " +
-        "Resolve the mixed records before continuing."
-      );
-    }
-
-    // Import existing reports using the newest snapshot per task week.
-    const byWeek = new Map();
-
-    for (const report of ownReports) {
-      if (
-        !Array.isArray(report.tasks_logged) ||
-        !Number.isFinite(Date.parse(report.timestamp))
-      ) {
-        throw new Error(
-          "An existing employee report is invalid."
-        );
+    @media (max-width: 500px) {
+      .calendar, .metrics {
+        grid-template-columns: 1fr;
       }
 
-      const grouped = new Map();
-
-      for (const task of report.tasks_logged) {
-        if (!validTask(task)) {
-          throw new Error("An existing task is invalid.");
-        }
-
-        const date = new Date(task.date + "T00:00:00Z");
-
-        date.setUTCDate(
-          date.getUTCDate() - (date.getUTCDay() + 6) % 7
-        );
-
-        const week = date.toISOString().slice(0, 10);
-
-        if (!grouped.has(week)) {
-          grouped.set(week, []);
-        }
-
-        grouped.get(week).push(task);
-      }
-
-      for (const [week, list] of grouped) {
-        if (
-          !byWeek.has(week) ||
-          Date.parse(report.timestamp) >= byWeek.get(week).time
-        ) {
-          byWeek.set(week, {
-            time: Date.parse(report.timestamp),
-            list
-          });
-        }
+      main {
+        padding: 12px;
       }
     }
+  </style>
+</head>
 
-    applyState({
-      tasks: [...byWeek.values()].flatMap(value => value.list),
-      battleRhythm: emptyRhythm(),
-      history: [],
-      archivedTasks: [],
-      empInfo: {
-        name: EMPLOYEE_NAME,
-        section: EMPLOYEE_SECTION,
-        psn: latest?.psn || "",
-        uicParaLin: latest?.uic_para_lin || ""
-      }
-    });
-  }
+<body>
+  <header>
+    <h1>Employee Task Tracker</h1>
+    <p id="employeeHeading">Employee configuration required</p>
+    <p>Position Description: M1608429FR</p>
+  </header>
 
-  async function loadShared() {
-    if (busy) return;
+  <main>
+    <div class="toolbar">
+      <button id="saveButton" class="primary" disabled>
+        Save Shared Changes
+      </button>
 
-    if (
-      dirty &&
-      !confirm(
-        "Replace this browser draft with the shared version? " +
-        "Unsaved local edits will be discarded."
-      )
-    ) {
-      return;
-    }
+      <button id="loadButton">
+        Load Shared Version
+      </button>
 
-    busy = true;
+      <button id="exportButton">
+        Download Draft Backup
+      </button>
 
-    try {
-      const database = await readDatabase();
+      <button id="forgetButton">
+        Forget GitHub Token
+      </button>
+    </div>
 
-      restoreReports(database.records);
+    <div id="status" role="status" aria-live="polite">
+      Starting tracker…
+    </div>
 
-      base = signature(database.records);
-      ready = true;
-      dirty = false;
+    <div class="notice">
+      Edits are browser drafts until Save Shared Changes succeeds.
+      Saving requires your own GitHub token with repository write access.
+      On another computer, use Load Shared Version to retrieve saved changes.
+    </div>
 
-      cacheDraft();
-      repaint();
+    <nav aria-label="Tracker sections">
+      <button class="active" data-tab="rhythm">
+        Battle Rhythm
+      </button>
+      <button data-tab="tracker">
+        Task Tracker
+      </button>
+      <button data-tab="summary">
+        Work Summary
+      </button>
+      <button data-tab="history">
+        Historical Data
+      </button>
+      <button data-tab="settings">
+        Employee Settings
+      </button>
+    </nav>
 
-      status(
-        "Shared version loaded. " +
-        "Edits become shared only after Save Shared Changes."
-      );
-    } catch (error) {
-      status(error.message + " Your current draft was kept.");
-    } finally {
-      busy = false;
-    }
-  }
+    <fieldset id="editor" disabled>
+      <!-- BATTLE RHYTHM -->
+      <section id="rhythm">
+        <div class="card">
+          <h2>Build Battle Rhythm</h2>
 
-  async function saveShared() {
-    if (busy) return;
+          <div class="two-columns">
+            <div class="field">
+              <label for="rhythmDay">Day</label>
+              <select id="rhythmDay">
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+              </select>
+            </div>
 
-    if (!ready) {
-      status(
-        "Load the shared version successfully before saving."
-      );
-      return;
-    }
+            <div class="field">
+              <label for="rhythmTask">Task</label>
+              <select id="rhythmTask"></select>
+            </div>
+          </div>
 
-    if (!token) {
-      token = (
-        prompt(
-          "Enter your own GitHub token with Contents: write access " +
-          "to mhrdnco/G1. It is kept only in this page’s memory."
-        ) || ""
-      ).trim();
-    }
+          <div id="rhythmOtherField" class="field hidden">
+            <label for="rhythmOther">Describe Other Task</label>
+            <input id="rhythmOther" type="text">
+          </div>
 
-    if (!token) return;
-
-    busy = true;
-
-    try {
-      const captured = currentState();
-
-      if (
-        ![...captured.tasks, ...captured.archivedTasks]
-          .every(validTask)
-      ) {
-        throw new Error(
-          "Correct invalid task dates or minutes before saving."
-        );
-      }
-
-      const database = await readDatabase();
-
-      if (signature(database.records) !== base) {
-        throw new Error(
-          "Someone saved newer employee data. Your draft remains here. " +
-          "Review or back it up, then load the shared version " +
-          "before editing again."
-        );
-      }
-
-      const now = new Date().toISOString();
-
-      const entry = {
-        timestamp: now,
-        employee_name: EMPLOYEE_NAME,
-        section: EMPLOYEE_SECTION,
-        psn: captured.empInfo.psn || "",
-        uic_para_lin: captured.empInfo.uicParaLin || "",
-        report_date: now.slice(0, 10),
-
-        // Keep archived work available for management analytics.
-        tasks_logged: [
-          ...captured.archivedTasks,
-          ...captured.tasks
-        ],
-
-        // Full state restores settings, rhythm, tasks, and history.
-        tracker_state: captured
-      };
-
-      database.records.push(entry);
-
-      const response = await fetch(API, {
-        method: "PUT",
-        headers: {
-          Accept: "application/vnd.github+json",
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token
-        },
-        body: JSON.stringify({
-          branch: BRANCH,
-          sha: database.sha,
-          message:
-            "Save tracker: " +
-            EMPLOYEE_NAME +
-            " / " +
-            EMPLOYEE_SECTION,
-          content: encodeContent(
-            JSON.stringify(database.records, null, 2) + "\n"
-          )
-        })
-      });
-
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          token = "";
-        }
-
-        throw new Error(
-          "Shared save failed (HTTP " + response.status + "). " +
-          "Your draft remains. A conflicting save requires " +
-          "a refresh and review."
-        );
-      }
-
-      const saved = await response.json();
-
-      base = signature(database.records);
-
-      dirty =
-        JSON.stringify(currentState()) !==
-        JSON.stringify(captured);
-
-      cacheDraft();
-
-      status(
-        "Saved to GitHub. Commit " +
-        saved.commit.sha.slice(0, 7) +
-        ". " +
-        (
-          dirty
-            ? "New edits made during saving still need another save."
-            : "Employees can use Load Shared Version to receive these changes."
-        )
-      );
-    } catch (error) {
-      status(error.message);
-    } finally {
-      busy = false;
-    }
-  }
-
-  // Ordinary edits remain browser drafts until explicitly shared.
-  autoSave = function() {
-    dirty = true;
-    cacheDraft();
-
-    status(
-      "Draft changed in this browser. " +
-      "Click Save Shared Changes to record it for everyone."
-    );
-  };
-
-  // Both existing save buttons now use the same shared save.
-  manualSave = saveShared;
-  transmitToGitHubAction = saveShared;
-
-  updateAdminData = function() {
-    empInfo.name = EMPLOYEE_NAME;
-    empInfo.section = EMPLOYEE_SECTION;
-    empInfo.psn = document.getElementById("empPsn").value;
-    empInfo.uicParaLin =
-      document.getElementById("empUicParaLin").value.trim();
-
-    autoSave();
-    originalRefresh();
-  };
-
-  clearAdminInfo = function() {
-    alert(
-      "Name and section identify this shared record. " +
-      "Change them consistently in the HTML and JSON files; " +
-      "they cannot be cleared here."
-    );
-  };
-
-  // The old visible PIN was not an authorization boundary.
-  // GitHub write permission controls whether a shared save succeeds.
-  promptAdmin = function(element) {
-    switchTab("adminTab", element);
-    populateAdminFields();
-    updateAdminTotals();
-  };
-
-  // Safely display typed task descriptions.
-  renderBattleRhythm = function() {
-    for (const day of Object.keys(emptyRhythm())) {
-      document.querySelector(
-        "#cal-" + day + " .tasks"
-      ).innerHTML = battleRhythm[day].map((task, index) => `
-        <div class="br-task">
-          ${escapeHTML(task)}
-          <button onclick="removeRhythmTask('${day}', ${index})">
-            Remove
+          <button id="addRhythm" class="primary">
+            Add to Calendar
           </button>
         </div>
-      `).join("");
-    }
-  };
 
-  updateTable = function() {
-    document.querySelector("#taskTable tbody").innerHTML =
-      tasks.map((task, index) => `
+        <div class="card">
+          <div id="calendar" class="calendar"></div>
+        </div>
+      </section>
+
+      <!-- TASK TRACKER -->
+      <section id="tracker" class="hidden">
+        <div class="grid">
+          <div class="card">
+            <h2>Log Executed Task</h2>
+
+            <div class="field">
+              <label for="taskDate">Date</label>
+              <input id="taskDate" type="date">
+            </div>
+
+            <div class="field">
+              <label for="taskDay">Day</label>
+              <input id="taskDay" type="text" readonly>
+            </div>
+
+            <div class="field">
+              <label for="taskChoice">Task</label>
+              <select id="taskChoice"></select>
+            </div>
+
+            <div id="taskOtherField" class="field hidden">
+              <label for="taskOther">Describe Other Task</label>
+              <input id="taskOther" type="text">
+            </div>
+
+            <div class="field">
+              <label for="taskMinutes">Minutes</label>
+              <input
+                id="taskMinutes"
+                type="number"
+                min="1"
+                step="1"
+              >
+            </div>
+
+            <button id="addTask" class="primary">
+              Add Task to Draft
+            </button>
+          </div>
+
+          <div class="card">
+            <h2>Current Tracker</h2>
+            <p class="muted">
+              Includes all unarchived tasks, regardless of week.
+            </p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Day</th>
+                    <th>Task</th>
+                    <th>Minutes</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="taskRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUMMARY -->
+      <section id="summary" class="hidden">
+        <div class="card">
+          <h2>Current Tracker Summary</h2>
+
+          <div id="summaryMetrics" class="metrics"></div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Minutes</th>
+                  <th>Hours</th>
+                </tr>
+              </thead>
+              <tbody id="summaryRows"></tbody>
+            </table>
+          </div>
+
+          <p class="muted">
+            Archiving moves all current tracker tasks into history.
+            Archived tasks remain included in management reporting.
+          </p>
+
+          <button id="archiveButton">
+            Archive Current Tracker
+          </button>
+        </div>
+
+        <div class="two-columns">
+          <div class="card">
+            <h2>Approved Tasks With Reported Use</h2>
+            <ul id="usedTasks"></ul>
+          </div>
+
+          <div class="card">
+            <h2>Approved Tasks With No Reported Use</h2>
+            <ul id="unusedTasks"></ul>
+            <p class="muted">
+              No reported use does not establish that an assignment
+              was missed. This comparison covers the current tracker.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- HISTORY -->
+      <section id="history" class="hidden">
+        <div class="card">
+          <h2>Historical Data</h2>
+          <div id="historyContent"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="settings" class="hidden">
+        <div class="card">
+          <h2>Employee Settings</h2>
+
+          <p class="muted">
+            Name and section identify the shared record and are
+            configured in this HTML. GitHub permissions control saving;
+            this page does not provide separate supervisor permissions.
+          </p>
+
+          <div class="two-columns">
+            <div class="field">
+              <label for="employeeName">Name</label>
+              <input id="employeeName" type="text" readonly>
+            </div>
+
+            <div class="field">
+              <label for="employeeSection">Section</label>
+              <input id="employeeSection" type="text" readonly>
+            </div>
+
+            <div class="field">
+              <label for="employeePsn">PSN — Optional</label>
+              <input id="employeePsn" type="text">
+            </div>
+
+            <div class="field">
+              <label for="employeeUic">UIC-PARA/LIN — Optional</label>
+              <input id="employeeUic" type="text">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Data Management</h2>
+
+          <p class="muted">
+            These actions change your draft. Save Shared Changes
+            afterward to update the shared record. Previous commits
+            remain in GitHub history.
+          </p>
+
+          <div class="toolbar">
+            <button id="clearRhythm" class="danger">
+              Clear Battle Rhythm
+            </button>
+
+            <button id="clearTasks" class="danger">
+              Clear Current Tasks
+            </button>
+
+            <button id="clearHistory" class="danger">
+              Clear Archived Data
+            </button>
+          </div>
+        </div>
+      </section>
+    </fieldset>
+  </main>
+
+  <script>
+    "use strict";
+
+    /*
+      REQUIRED: Use the exact same name and section as
+      data.json and employee-catalogs.json.
+    */
+    const EMPLOYEE_NAME = "EXACT EMPLOYEE NAME";
+    const EMPLOYEE_SECTION = "HQ";
+
+    const REPOSITORY = "mhrdnco/G1";
+    const BRANCH = "main";
+
+    const API =
+      "https://api.github.com/repos/" +
+      REPOSITORY +
+      "/contents/data.json";
+
+    const PD_TASKS = [
+      "IPPS-A Command HR SME & Deployment Mgmt",
+      "MILPAY & IPPS-A Upgrade Training Execution",
+      "HR Systems Data Extraction & Analysis",
+      "Workflow Modeling & Compliance Reporting",
+      "Resolution of Personnel Software Deficiencies",
+      "Strategic Communications & Change Management",
+      "Customer Relations Management (CRM) Support",
+      "Technical Reviews of HR Allocation Models",
+      "Briefings, Conferences & IPR Presentations"
+    ];
+
+    const DAYS = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday"
+    ];
+
+    const $ = id => document.getElementById(id);
+
+    const normalize = value =>
+      String(value ?? "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+
+    const clone = value =>
+      JSON.parse(JSON.stringify(value));
+
+    const escapeHTML = value =>
+      String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
+
+    const CACHE_KEY =
+      "shared-tracker-v1:" +
+      JSON.stringify([
+        location.pathname,
+        normalize(EMPLOYEE_NAME),
+        normalize(EMPLOYEE_SECTION)
+      ]);
+
+    let state = emptyState();
+    let baseSignature = null;
+    let ready = false;
+    let dirty = false;
+    let busy = false;
+    let token = "";
+
+    function emptyState() {
+      return {
+        tasks: [],
+        battleRhythm: Object.fromEntries(
+          DAYS.map(day => [day, []])
+        ),
+        history: [],
+        archivedTasks: [],
+        empInfo: {
+          name: EMPLOYEE_NAME,
+          section: EMPLOYEE_SECTION,
+          psn: "",
+          uicParaLin: ""
+        }
+      };
+    }
+
+    function setStatus(message) {
+      $("status").textContent = message;
+    }
+
+    function setControls() {
+      $("editor").disabled = !ready || busy;
+      $("saveButton").disabled = !ready || busy;
+      $("loadButton").disabled = busy;
+      $("forgetButton").disabled = busy;
+    }
+
+    function matches(record) {
+      return (
+        record &&
+        normalize(record.employee_name) ===
+          normalize(EMPLOYEE_NAME) &&
+        normalize(record.section) ===
+          normalize(EMPLOYEE_SECTION)
+      );
+    }
+
+    function signature(records) {
+      return JSON.stringify(records.filter(matches));
+    }
+
+    function validDate(value) {
+      if (
+        typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value)
+      ) {
+        return false;
+      }
+
+      const date = new Date(value + "T00:00:00Z");
+
+      return (
+        Number.isFinite(date.getTime()) &&
+        date.toISOString().slice(0, 10) === value
+      );
+    }
+
+    function validTask(task) {
+      return (
+        task &&
+        validDate(task.date) &&
+        typeof task.task === "string" &&
+        task.task.trim() !== "" &&
+        Number.isSafeInteger(task.time) &&
+        task.time > 0
+      );
+    }
+
+    function weekday(date) {
+      return new Date(
+        date + "T00:00:00Z"
+      ).toLocaleDateString("en-US", {
+        weekday: "long",
+        timeZone: "UTC"
+      });
+    }
+
+    function weekStart(value) {
+      const date = new Date(value + "T00:00:00Z");
+
+      date.setUTCDate(
+        date.getUTCDate() - (date.getUTCDay() + 6) % 7
+      );
+
+      return date.toISOString().slice(0, 10);
+    }
+
+    function totalMinutes(tasks) {
+      return tasks.reduce(
+        (total, task) => total + task.time,
+        0
+      );
+    }
+
+    function summaryRows(tasks) {
+      const totals = new Map();
+
+      for (const task of tasks) {
+        totals.set(
+          task.task,
+          (totals.get(task.task) || 0) + task.time
+        );
+      }
+
+      return [...totals].map(([task, minutes]) => `
+        <tr>
+          <td>${escapeHTML(task)}</td>
+          <td>${minutes}</td>
+          <td>${(minutes / 60).toFixed(2)}</td>
+        </tr>
+      `).join("") || `
+        <tr>
+          <td colspan="3">No reported tasks.</td>
+        </tr>
+      `;
+    }
+
+    function validateState(value) {
+      if (
+        !value ||
+        !Array.isArray(value.tasks) ||
+        !value.tasks.every(validTask) ||
+        !Array.isArray(value.archivedTasks) ||
+        !value.archivedTasks.every(validTask) ||
+        !Array.isArray(value.history) ||
+        !value.history.every(item => typeof item === "string") ||
+        !value.battleRhythm ||
+        !value.empInfo
+      ) {
+        throw new Error("The saved tracker state is invalid.");
+      }
+
+      for (const day of DAYS) {
+        if (
+          !Array.isArray(value.battleRhythm[day]) ||
+          !value.battleRhythm[day].every(
+            task => typeof task === "string"
+          )
+        ) {
+          throw new Error("The saved battle rhythm is invalid.");
+        }
+      }
+
+      const result = clone(value);
+
+      result.empInfo = {
+        name: EMPLOYEE_NAME,
+        section: EMPLOYEE_SECTION,
+        psn: String(value.empInfo.psn || ""),
+        uicParaLin: String(value.empInfo.uicParaLin || "")
+      };
+
+      return result;
+    }
+
+    function cacheDraft() {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          base: baseSignature,
+          dirty,
+          value: state
+        }));
+
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function changed() {
+      dirty = true;
+
+      const cached = cacheDraft();
+
+      setStatus(
+        cached
+          ? "Draft changed. Click Save Shared Changes to record it for everyone."
+          : "Draft changed, but browser backup failed. Save shared changes or download a backup."
+      );
+
+      render();
+    }
+
+    function showTab(name) {
+      for (const tab of [
+        "rhythm",
+        "tracker",
+        "summary",
+        "history",
+        "settings"
+      ]) {
+        $(tab).classList.toggle("hidden", tab !== name);
+      }
+
+      document.querySelectorAll("[data-tab]").forEach(button => {
+        button.classList.toggle(
+          "active",
+          button.dataset.tab === name
+        );
+      });
+    }
+
+    function renderHistory() {
+      const root = $("historyContent");
+      root.replaceChildren();
+
+      if (!state.history.length) {
+        root.textContent = "No archived data.";
+        return;
+      }
+
+      /*
+        Rebuild only safe text and table elements.
+        Do not execute HTML stored in historical records.
+      */
+      const allowed = new Set([
+        "DIV",
+        "H4",
+        "TABLE",
+        "THEAD",
+        "TBODY",
+        "TFOOT",
+        "TR",
+        "TH",
+        "TD"
+      ]);
+
+      function copyNode(node, parent) {
+        if (node.nodeType === 3) {
+          parent.appendChild(
+            document.createTextNode(node.textContent)
+          );
+          return;
+        }
+
+        if (
+          node.nodeType !== 1 ||
+          !allowed.has(node.tagName)
+        ) {
+          return;
+        }
+
+        const element = document.createElement(
+          node.tagName.toLowerCase()
+        );
+
+        if (node.tagName === "DIV") {
+          element.className = "archive";
+        }
+
+        for (const child of node.childNodes) {
+          copyNode(child, element);
+        }
+
+        parent.appendChild(element);
+      }
+
+      for (const item of state.history) {
+        const parsed = new DOMParser().parseFromString(
+          item,
+          "text/html"
+        );
+
+        for (const child of parsed.body.childNodes) {
+          copyNode(child, root);
+        }
+      }
+    }
+
+    function render() {
+      $("employeeHeading").textContent =
+        EMPLOYEE_NAME + " — " + EMPLOYEE_SECTION;
+
+      $("employeeName").value = EMPLOYEE_NAME;
+      $("employeeSection").value = EMPLOYEE_SECTION;
+      $("employeePsn").value = state.empInfo.psn;
+      $("employeeUic").value = state.empInfo.uicParaLin;
+
+      $("calendar").innerHTML = DAYS.map(day => `
+        <div class="day">
+          <h3>${day}</h3>
+          ${
+            state.battleRhythm[day].map((task, index) => `
+              <div class="rhythm-task">
+                <div>${escapeHTML(task)}</div>
+                <button
+                  data-remove-rhythm="${index}"
+                  data-day="${day}"
+                >
+                  Remove
+                </button>
+              </div>
+            `).join("")
+          }
+        </div>
+      `).join("");
+
+      $("taskRows").innerHTML = state.tasks.map((task, index) => `
         <tr>
           <td>${escapeHTML(task.date)}</td>
-          <td>${escapeHTML(task.day)}</td>
+          <td>${escapeHTML(weekday(task.date))}</td>
           <td>${escapeHTML(task.task)}</td>
           <td>${task.time}</td>
           <td>
-            <button onclick="deleteTask(${index})">
+            <button data-remove-task="${index}">
               Remove
             </button>
           </td>
         </tr>
-      `).join("");
-  };
+      `).join("") || `
+        <tr>
+          <td colspan="5">No tasks in the current tracker.</td>
+        </tr>
+      `;
 
-  function summaryHTML() {
-    const sums = new Map();
+      const minutes = totalMinutes(state.tasks);
 
-    for (const task of tasks) {
-      sums.set(
-        task.task,
-        (sums.get(task.task) || 0) + task.time
+      const otherMinutes = totalMinutes(
+        state.tasks.filter(task =>
+          /^other(?:\s*:|$)/i.test(task.task)
+        )
       );
+
+      $("summaryMetrics").innerHTML = `
+        <div class="metric">
+          Task Entries
+          <strong>${state.tasks.length}</strong>
+        </div>
+        <div class="metric">
+          Reported Hours
+          <strong>${(minutes / 60).toFixed(2)}</strong>
+        </div>
+        <div class="metric">
+          Other Hours
+          <strong>${(otherMinutes / 60).toFixed(2)}</strong>
+        </div>
+      `;
+
+      $("summaryRows").innerHTML = summaryRows(state.tasks);
+
+      const used = new Set(
+        state.tasks.map(task => normalize(task.task))
+      );
+
+      $("usedTasks").innerHTML = PD_TASKS
+        .filter(task => used.has(normalize(task)))
+        .map(task => `<li>${escapeHTML(task)}</li>`)
+        .join("") || "<li>None</li>";
+
+      $("unusedTasks").innerHTML = PD_TASKS
+        .filter(task => !used.has(normalize(task)))
+        .map(task => `<li>${escapeHTML(task)}</li>`)
+        .join("") || "<li>None</li>";
+
+      renderHistory();
+      setControls();
     }
 
-    return [...sums].map(([task, time]) => `
-      <tr>
-        <td>${escapeHTML(task)}</td>
-        <td>${time}</td>
-        <td>${(time / 60).toFixed(2)}</td>
-      </tr>
-    `).join("");
-  }
+    function decodeContent(content) {
+      const bytes = Uint8Array.from(
+        atob(content.replace(/\s/g, "")),
+        character => character.charCodeAt(0)
+      );
 
-  updateDashboard = function() {
-    document.querySelector("#summaryTable tbody").innerHTML =
-      summaryHTML();
+      return new TextDecoder("utf-8", {
+        fatal: true
+      }).decode(bytes);
+    }
 
-    const total = tasks.reduce(
-      (sum, task) => sum + task.time,
-      0
-    );
+    function encodeContent(content) {
+      let binary = "";
 
-    document.getElementById("totalMins").textContent = total;
-    document.getElementById("totalHrs").textContent =
-      (total / 60).toFixed(2);
-  };
+      for (const byte of new TextEncoder().encode(content)) {
+        binary += String.fromCharCode(byte);
+      }
 
-  updateAdminTotals = function() {
-    const used = new Set(
-      tasks.map(task => normalize(task.task))
-    );
+      return btoa(binary);
+    }
 
-    document.getElementById("adminAllTasks").innerHTML =
-      pdTasks.map(task =>
-        "<li>" + escapeHTML(task) + "</li>"
-      ).join("");
+    async function readDatabase() {
+      const response = await fetch(
+        API + "?ref=" + encodeURIComponent(BRANCH),
+        {
+          cache: "no-store",
+          headers: {
+            Accept: "application/vnd.github+json",
+            ...(token
+              ? { Authorization: "Bearer " + token }
+              : {})
+          }
+        }
+      );
 
-    document.getElementById("adminReportedTasks").innerHTML =
-      [...new Set(tasks.map(task => task.task))]
-        .map(task => "<li>" + escapeHTML(task) + "</li>")
-        .join("") || "<li>None</li>";
-
-    document.getElementById("adminUnreportedTasks").innerHTML =
-      pdTasks
-        .filter(task => !used.has(normalize(task)))
-        .map(task => "<li>" + escapeHTML(task) + "</li>")
-        .join("") || "<li>None</li>";
-
-    document.querySelector("#adminTotalTable tbody").innerHTML =
-      summaryHTML();
-
-    const total = tasks.reduce(
-      (sum, task) => sum + task.time,
-      0
-    );
-
-    document.getElementById("adminTotalMins").textContent = total;
-    document.getElementById("adminTotalHrs").textContent =
-      (total / 60).toFixed(2);
-  };
-
-  renderHistory = function() {
-    const root = document.getElementById("historyContainer");
-    root.replaceChildren();
-
-    // Rebuild only the text/table elements used by existing archives.
-    const allowed = new Set([
-      "DIV", "H4", "TABLE", "THEAD",
-      "TBODY", "TFOOT", "TR", "TH", "TD"
-    ]);
-
-    function copyNode(node, parent) {
-      if (node.nodeType === 3) {
-        parent.appendChild(
-          document.createTextNode(node.textContent)
+      if (!response.ok) {
+        throw new Error(
+          "Cannot read shared data (HTTP " +
+          response.status +
+          ")."
         );
-        return;
+      }
+
+      const file = await response.json();
+
+      if (
+        file.encoding !== "base64" ||
+        typeof file.content !== "string" ||
+        !file.sha
+      ) {
+        throw new Error(
+          "The shared file is too large or is not supported."
+        );
+      }
+
+      const records = JSON.parse(
+        decodeContent(file.content)
+      );
+
+      if (!Array.isArray(records)) {
+        throw new Error(
+          "data.json must contain an array."
+        );
+      }
+
+      return {
+        records,
+        sha: file.sha
+      };
+    }
+
+    function stateFromReports(records) {
+      const ownReports = records.filter(matches);
+      const latest = ownReports.at(-1);
+
+      if (latest?.tracker_state) {
+        return validateState(latest.tracker_state);
       }
 
       if (
-        node.nodeType !== 1 ||
-        !allowed.has(node.tagName)
+        ownReports.some(report => report.tracker_state)
+      ) {
+        throw new Error(
+          "An original workflow report follows a full shared save. " +
+          "Resolve the mixed records before continuing."
+        );
+      }
+
+      const result = emptyState();
+      const byWeek = new Map();
+
+      /*
+        Import old reports using the latest submission
+        containing each task week.
+      */
+      for (const report of ownReports) {
+        if (
+          !Array.isArray(report.tasks_logged) ||
+          !Number.isFinite(Date.parse(report.timestamp))
+        ) {
+          throw new Error(
+            "An existing employee report is invalid."
+          );
+        }
+
+        const grouped = new Map();
+
+        for (const task of report.tasks_logged) {
+          if (!validTask(task)) {
+            throw new Error(
+              "An existing task contains invalid data."
+            );
+          }
+
+          const week = weekStart(task.date);
+
+          if (!grouped.has(week)) {
+            grouped.set(week, []);
+          }
+
+          grouped.get(week).push(task);
+        }
+
+        for (const [week, list] of grouped) {
+          const previous = byWeek.get(week);
+
+          if (
+            !previous ||
+            Date.parse(report.timestamp) >= previous.time
+          ) {
+            byWeek.set(week, {
+              time: Date.parse(report.timestamp),
+              tasks: list
+            });
+          }
+        }
+      }
+
+      result.tasks = [...byWeek.values()].flatMap(
+        value => value.tasks
+      );
+
+      result.empInfo.psn = String(latest?.psn || "");
+      result.empInfo.uicParaLin = String(
+        latest?.uic_para_lin || ""
+      );
+
+      return validateState(result);
+    }
+
+    async function loadShared() {
+      if (busy) return;
+
+      if (
+        dirty &&
+        !confirm(
+          "Replace your current draft with the shared version? " +
+          "Download a draft backup first if you need to preserve edits."
+        )
       ) {
         return;
       }
 
-      const element = document.createElement(
-        node.tagName.toLowerCase()
-      );
+      busy = true;
+      setControls();
+      setStatus("Loading shared version…");
 
-      if (node.tagName === "DIV") {
-        element.className = "archive-block";
-      }
+      try {
+        const database = await readDatabase();
 
-      for (const child of node.childNodes) {
-        copyNode(child, element);
-      }
-
-      parent.appendChild(element);
-    }
-
-    for (const html of history) {
-      const parsed = new DOMParser().parseFromString(
-        html,
-        "text/html"
-      );
-
-      for (const child of parsed.body.childNodes) {
-        copyNode(child, root);
-      }
-    }
-  };
-
-  archiveWeek = function() {
-    if (!tasks.length) {
-      alert("No tasks to archive.");
-      return;
-    }
-
-    if (
-      !confirm(
-        "Move current tasks into history? " +
-        "Save Shared Changes afterward to share the archive."
-      )
-    ) {
-      return;
-    }
-
-    updateDashboard();
-
-    history.unshift(
-      "<div><h4>Archived " +
-      escapeHTML(new Date().toLocaleDateString()) +
-      "</h4>" +
-      document.getElementById("summaryTable").outerHTML +
-      "</div>"
-    );
-
-    archivedTasks.push(...clone(tasks));
-    tasks = [];
-    battleRhythm = emptyRhythm();
-
-    autoSave();
-    repaint();
-
-    switchTab(
-      "historyTab",
-      document.querySelectorAll(".tab")[3]
-    );
-  };
-
-  clearHistory = function() {
-    if (
-      confirm(
-        "Clear archive displays and their tasks from the current " +
-        "shared state? Earlier GitHub records remain in history."
-      )
-    ) {
-      history = [];
-      archivedTasks = [];
-      autoSave();
-      renderHistory();
-    }
-  };
-
-  addTask = function() {
-    const date = document.getElementById("taskDate").value;
-    let task = document.getElementById("taskSelect").value;
-    const time = Number(
-      document.getElementById("taskTime").value
-    );
-
-    if (task === "OTHER") {
-      const description =
-        document.getElementById("trackerOtherTask").value.trim();
-
-      if (!description) {
-        alert("Type the Other task description.");
-        return;
-      }
-
-      task = "OTHER: " + description;
-    }
-
-    if (!validTask({ date, task, time })) {
-      alert(
-        "Enter a valid date, task, and whole number of minutes."
-      );
-      return;
-    }
-
-    const day = new Date(
-      date + "T00:00:00Z"
-    ).toLocaleDateString("en-US", {
-      weekday: "long",
-      timeZone: "UTC"
-    });
-
-    tasks.push({ date, day, task, time });
-
-    autoSave();
-    updateTable();
-
-    document.getElementById("taskTime").value = "";
-    document.getElementById("taskSelect").value = "";
-    document.getElementById("trackerOtherTask").value = "";
-
-    checkTrackerOther();
-  };
-
-  window.onload = async function() {
-    const panel = document.createElement("div");
-
-    panel.style =
-      "padding:15px;margin:15px 0;background:#e8f2f8;" +
-      "border:1px solid #aac4d4";
-
-    panel.innerHTML = `
-      <button id="loadSharedButton">Load Shared Version</button>
-      <button id="forgetTokenButton">Forget GitHub Token</button>
-      <p id="sharedStatus" role="status"></p>
-    `;
-
-    document.querySelector(".header").after(panel);
-
-    document.getElementById("loadSharedButton").onclick =
-      loadShared;
-
-    document.getElementById("forgetTokenButton").onclick = () => {
-      token = "";
-      status("Token removed from this page’s memory.");
-    };
-
-    document.querySelector(".master-save-btn").textContent =
-      "Save Shared Changes";
-
-    document.getElementById("transmitBtn").textContent =
-      "SAVE SHARED CHANGES";
-
-    document.querySelectorAll("h3,h4").forEach(element => {
-      element.textContent = element.textContent
-        .replace("Unreported / Missed", "No Reported Use")
-        .replace("Current Week", "Current Tracker");
-    });
-
-    document.querySelector(
-      "#adminTab .admin-panel h3"
-    ).textContent =
-      "Employee Settings — saving requires GitHub write access";
-
-    // This test uses the summary table instead of the original chart.
-    document.querySelector(".chart-container").style.display =
-      "none";
-
-    populatePsnDropdown();
-    populateDropdowns();
-
-    empInfo = {
-      name: EMPLOYEE_NAME,
-      section: EMPLOYEE_SECTION,
-      psn: "",
-      uicParaLin: ""
-    };
-
-    document.getElementById("empName").readOnly = true;
-    document.getElementById("empSection").disabled = true;
-
-    if (
-      EMPLOYEE_NAME === "EXACT EMPLOYEE NAME" ||
-      !clean(EMPLOYEE_NAME)
-    ) {
-      repaint();
-
-      status(
-        "Set EMPLOYEE_NAME in this script to the exact name in " +
-        "data.json and employee-catalogs.json before testing."
-      );
-
-      return;
-    }
-
-    try {
-      const saved = JSON.parse(
-        localStorage.getItem(cacheKey) || "null"
-      );
-
-      if (saved?.dirty) {
-        applyState(saved.value);
-        base = saved.base;
-        dirty = true;
-        ready = typeof base === "string";
-
-        repaint();
-
-        status(
-          "Recovered an unsaved browser draft. Shared saving checks " +
-          "for newer employee changes before writing."
+        const nextState = stateFromReports(
+          database.records
         );
 
+        state = nextState;
+        baseSignature = signature(database.records);
+        ready = true;
+        dirty = false;
+
+        cacheDraft();
+        render();
+
+        setStatus(
+          "Shared version loaded. Make changes, then click Save Shared Changes."
+        );
+      } catch (error) {
+        setStatus(
+          error.message + " Your current draft was kept."
+        );
+      } finally {
+        busy = false;
+        setControls();
+      }
+    }
+
+    async function saveShared() {
+      if (!ready || busy) return;
+
+      if (!token) {
+        token = (
+          prompt(
+            "Enter your own GitHub token with Contents: write access " +
+            "to " + REPOSITORY + ". " +
+            "It is kept only in this page’s memory."
+          ) || ""
+        ).trim();
+      }
+
+      if (!token) return;
+
+      busy = true;
+      setControls();
+      setStatus("Checking the shared version before saving…");
+
+      try {
+        const captured = validateState(state);
+        const database = await readDatabase();
+
+        if (
+          signature(database.records) !== baseSignature
+        ) {
+          throw new Error(
+            "Newer employee changes exist. Your draft has not been saved. " +
+            "Download a backup, load the shared version, and review " +
+            "your edits before saving again."
+          );
+        }
+
+        const now = new Date().toISOString();
+
+        const entry = {
+          timestamp: now,
+          employee_name: EMPLOYEE_NAME,
+          section: EMPLOYEE_SECTION,
+          psn: captured.empInfo.psn,
+          uic_para_lin: captured.empInfo.uicParaLin,
+          report_date: now.slice(0, 10),
+          tasks_logged: [
+            ...captured.archivedTasks,
+            ...captured.tasks
+          ],
+          tracker_state: captured
+        };
+
+        database.records.push(entry);
+
+        const response = await fetch(API, {
+          method: "PUT",
+          headers: {
+            Accept: "application/vnd.github+json",
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({
+            branch: BRANCH,
+            sha: database.sha,
+            message:
+              "Save tracker: " +
+              EMPLOYEE_NAME +
+              " / " +
+              EMPLOYEE_SECTION,
+            content: encodeContent(
+              JSON.stringify(database.records, null, 2) + "\n"
+            )
+          })
+        });
+
+        if (!response.ok) {
+          if (
+            response.status === 401 ||
+            response.status === 403
+          ) {
+            token = "";
+          }
+
+          throw new Error(
+            "Shared save failed (HTTP " +
+            response.status +
+            "). Your draft remains available. " +
+            "A conflicting save requires a refresh and review."
+          );
+        }
+
+        const saved = await response.json();
+
+        baseSignature = signature(database.records);
+        dirty = false;
+
+        cacheDraft();
+
+        setStatus(
+          "Saved to GitHub. Commit " +
+          saved.commit.sha.slice(0, 7) +
+          ". Use Load Shared Version on another computer " +
+          "to retrieve these changes."
+        );
+      } catch (error) {
+        setStatus(error.message);
+      } finally {
+        busy = false;
+        setControls();
+      }
+    }
+
+    function selectedTask(selectId, otherId) {
+      let task = $(selectId).value;
+
+      if (task === "OTHER") {
+        const description = $(otherId).value.trim();
+
+        if (!description) {
+          throw new Error(
+            "Please type a description for Other."
+          );
+        }
+
+        task = "OTHER: " + description;
+      }
+
+      if (!task) {
+        throw new Error("Please select a task.");
+      }
+
+      return task;
+    }
+
+    function populateTaskChoices() {
+      const options =
+        '<option value="">Select task…</option>' +
+        PD_TASKS.map(task => `
+          <option value="${escapeHTML(task)}">
+            ${escapeHTML(task)}
+          </option>
+        `).join("") +
+        '<option value="OTHER">OTHER</option>';
+
+      $("rhythmTask").innerHTML = options;
+      $("taskChoice").innerHTML = options;
+    }
+
+    $("rhythmTask").addEventListener("change", () => {
+      $("rhythmOtherField").classList.toggle(
+        "hidden",
+        $("rhythmTask").value !== "OTHER"
+      );
+    });
+
+    $("taskChoice").addEventListener("change", () => {
+      $("taskOtherField").classList.toggle(
+        "hidden",
+        $("taskChoice").value !== "OTHER"
+      );
+    });
+
+    $("taskDate").addEventListener("change", () => {
+      $("taskDay").value = validDate($("taskDate").value)
+        ? weekday($("taskDate").value)
+        : "";
+    });
+
+    $("addRhythm").addEventListener("click", () => {
+      try {
+        const task = selectedTask(
+          "rhythmTask",
+          "rhythmOther"
+        );
+
+        state.battleRhythm[$("rhythmDay").value].push(task);
+
+        $("rhythmTask").value = "";
+        $("rhythmOther").value = "";
+        $("rhythmOtherField").classList.add("hidden");
+
+        changed();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $("calendar").addEventListener("click", event => {
+      const button = event.target.closest(
+        "[data-remove-rhythm]"
+      );
+
+      if (!button) return;
+
+      state.battleRhythm[button.dataset.day].splice(
+        Number(button.dataset.removeRhythm),
+        1
+      );
+
+      changed();
+    });
+
+    $("addTask").addEventListener("click", () => {
+      try {
+        const task = selectedTask(
+          "taskChoice",
+          "taskOther"
+        );
+
+        const date = $("taskDate").value;
+        const time = Number($("taskMinutes").value);
+
+        if (!validTask({ date, task, time })) {
+          throw new Error(
+            "Enter a valid date and a positive whole number of minutes."
+          );
+        }
+
+        state.tasks.push({
+          date,
+          day: weekday(date),
+          task,
+          time
+        });
+
+        $("taskChoice").value = "";
+        $("taskOther").value = "";
+        $("taskMinutes").value = "";
+        $("taskOtherField").classList.add("hidden");
+
+        changed();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    $("taskRows").addEventListener("click", event => {
+      const button = event.target.closest(
+        "[data-remove-task]"
+      );
+
+      if (!button) return;
+
+      state.tasks.splice(
+        Number(button.dataset.removeTask),
+        1
+      );
+
+      changed();
+    });
+
+    $("archiveButton").addEventListener("click", () => {
+      if (!state.tasks.length) {
+        alert("There are no current tasks to archive.");
         return;
       }
-    } catch {
-      status("Could not recover the browser draft.");
-    }
 
-    repaint();
-    await loadShared();
+      if (
+        !confirm(
+          "Archive all current tracker tasks? " +
+          "Save Shared Changes afterward to share the archive."
+        )
+      ) {
+        return;
+      }
 
-    if (location.hash === "#tab-3") {
-      switchTab(
-        "dashboardTab",
-        document.querySelectorAll(".tab")[2]
+      const minutes = totalMinutes(state.tasks);
+
+      state.history.unshift(`
+        <div>
+          <h4>
+            Archived: ${escapeHTML(new Date().toLocaleString())}
+          </h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Minutes</th>
+                <th>Hours</th>
+              </tr>
+            </thead>
+            <tbody>${summaryRows(state.tasks)}</tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td>${minutes}</td>
+                <td>${(minutes / 60).toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `);
+
+      state.archivedTasks.push(...clone(state.tasks));
+      state.tasks = [];
+
+      changed();
+      showTab("history");
+    });
+
+    $("employeePsn").addEventListener("input", () => {
+      state.empInfo.psn = $("employeePsn").value;
+      dirty = true;
+      cacheDraft();
+      setStatus(
+        "Settings changed in this draft. Save Shared Changes to share them."
       );
-    }
-  };
+    });
 
-  window.addEventListener("beforeunload", event => {
-    if (dirty) {
-      event.preventDefault();
-      event.returnValue = "";
+    $("employeeUic").addEventListener("input", () => {
+      state.empInfo.uicParaLin = $("employeeUic").value;
+      dirty = true;
+      cacheDraft();
+      setStatus(
+        "Settings changed in this draft. Save Shared Changes to share them."
+      );
+    });
+
+    $("clearRhythm").addEventListener("click", () => {
+      if (confirm("Clear the battle rhythm in this draft?")) {
+        state.battleRhythm = emptyState().battleRhythm;
+        changed();
+      }
+    });
+
+    $("clearTasks").addEventListener("click", () => {
+      if (confirm("Clear all current tasks in this draft?")) {
+        state.tasks = [];
+        changed();
+      }
+    });
+
+    $("clearHistory").addEventListener("click", () => {
+      if (
+        confirm(
+          "Clear archived displays and archived task data from this draft?"
+        )
+      ) {
+        state.history = [];
+        state.archivedTasks = [];
+        changed();
+      }
+    });
+
+    $("saveButton").addEventListener("click", saveShared);
+    $("loadButton").addEventListener("click", loadShared);
+
+    $("forgetButton").addEventListener("click", () => {
+      token = "";
+      setStatus(
+        "GitHub token removed from this page’s memory."
+      );
+    });
+
+    $("exportButton").addEventListener("click", () => {
+      const backup = {
+        employee_name: EMPLOYEE_NAME,
+        section: EMPLOYEE_SECTION,
+        exported_at: new Date().toISOString(),
+        tracker_state: state
+      };
+
+      const blob = new Blob(
+        [JSON.stringify(backup, null, 2)],
+        { type: "application/json" }
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "employee-tracker-draft-backup.json";
+      link.click();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    document.querySelectorAll("[data-tab]").forEach(button => {
+      button.addEventListener("click", () => {
+        showTab(button.dataset.tab);
+      });
+    });
+
+    window.addEventListener("beforeunload", event => {
+      if (dirty || busy) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+
+    async function start() {
+      populateTaskChoices();
+      render();
+
+      if (
+        !normalize(EMPLOYEE_NAME) ||
+        EMPLOYEE_NAME === "EXACT EMPLOYEE NAME"
+      ) {
+        setStatus(
+          "Setup required: replace EXACT EMPLOYEE NAME in the script " +
+          "with the name used in data.json and employee-catalogs.json."
+        );
+
+        $("loadButton").disabled = true;
+        return;
+      }
+
+      if (
+        !["HQ", "SMB", "STB", "HROB", "EPSB"]
+          .includes(EMPLOYEE_SECTION)
+      ) {
+        setStatus(
+          "Setup required: enter a valid EMPLOYEE_SECTION in the script."
+        );
+
+        $("loadButton").disabled = true;
+        return;
+      }
+
+      let recovered = false;
+
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(CACHE_KEY) || "null"
+        );
+
+        if (
+          saved?.dirty &&
+          typeof saved.base === "string"
+        ) {
+          state = validateState(saved.value);
+          baseSignature = saved.base;
+          dirty = true;
+          ready = true;
+          recovered = true;
+
+          render();
+
+          setStatus(
+            "Recovered an unsaved browser draft. " +
+            "Saving checks for newer shared changes before writing."
+          );
+        }
+      } catch {
+        setStatus(
+          "The browser draft could not be recovered."
+        );
+      }
+
+      if (!recovered) {
+        await loadShared();
+      }
+
+      if (location.hash === "#tab-3") {
+        showTab("summary");
+      }
     }
-  });
-})();
-</script>
+
+    start();
+  </script>
+</body>
+</html>
