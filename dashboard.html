@@ -349,7 +349,7 @@
         <h2>Employee Workload</h2>
 
         <p class="muted">
-          Employees are matched by name and section. Select an employee
+          Reports are grouped by PD number. The latest submitted name is displayed. Select a position
           to review task activity and position description evidence.
         </p>
 
@@ -439,62 +439,25 @@
     <!-- SETUP -->
     <section id="setup" class="hidden">
       <div class="card">
-        <h2>Name and Section Matching</h2>
-
-        <p>
-          This dashboard matches records using
-          <strong>employee_name + section</strong>.
-          Capitalization and extra spaces are ignored.
-          Different spellings are treated as different people.
-        </p>
-
-        <p>
-          Use the same employee name and section in the employee page,
-          submitted reports, and task catalog. Reports missing either
-          field are excluded and counted in the loading status.
-        </p>
-
-        <div class="notice info">
-          Existing PSN fields can remain in data.json. This dashboard
-          does not use them for matching. Employees with the same name
-          in the same section cannot be distinguished by this approach.
-          A name or section change requires historical records and the
-          catalog to be updated consistently.
-        </div>
+        <h2>PD Number Matching</h2>
+        <p>Reports and approved tasks are matched by <strong>pd</strong>, the PD number shown in parentheses on the employee page. Names are display information; correcting a name does not split the position history.</p>
+        <p>The latest saved report supplies the employee name management sees. Employees must submit or save shared changes and management must refresh after the updated data is published. Typing a name alone does not publish it.</p>
+        <p>Reports without a PD number are excluded and counted in the loading status. Add verified PD numbers to historical records before using their totals.</p>
+        <p>Each PD represents one combined history. Pages sharing a PD are combined, including their weekly snapshot replacement behavior.</p>
       </div>
-
       <div class="card">
         <h2>Approved Task Catalog</h2>
-
-        <p>
-          Place <code>employee-catalogs.json</code> beside this HTML file
-          and <code>data.json</code>. Use the name-and-section format
-          below. The PD number can remain blank.
-        </p>
-
+        <p>Keep employee-catalogs.json beside this dashboard. Include one entry per PD, its section, approved tasks, and optionally its page filename. The name may be blank until a report is submitted.</p>
         <pre>{
-  "employees": [
-    {
-      "employee_name": "EXACT EMPLOYEE NAME",
-      "section": "HQ",
-      "pd": "",
-      "tasks": [
-        "Exact approved task name",
-        "Another approved task name"
-      ]
-    }
-  ]
+  "employees": [{
+    "employee_name": "",
+    "section": "HQ",
+    "pd": "M1608429FR",
+    "page": "",
+    "tasks": ["Exact approved task name"]
+  }]
 }</pre>
-
-        <p>
-          Add one object for each employee. Include the complete approved
-          task list before relying on used-versus-unused comparisons.
-        </p>
-
-        <p class="muted">
-          A catalog keyed only by PSN must include employee_name and
-          section before this dashboard can match it.
-        </p>
+        <p>Set page to the verified employee page filename to show its submitted name and PD in the Employee Pages menu.</p>
       </div>
 
       <div class="card">
@@ -560,7 +523,7 @@
 
     const EMPLOYEE_PAGES = [
       {
-        name: "Jarod Groves",
+        name: "Jarrod Groves",
         section: "HQ",
         page: "hq1.html"
       },
@@ -674,22 +637,19 @@
         .toLowerCase();
     }
 
-    function validIdentity(name, section) {
-      return (
-        typeof name === "string" &&
-        typeof section === "string" &&
-        normalize(name) !== "" &&
-        normalize(section) !== "" &&
-        normalize(name) !== "not set" &&
-        normalize(section) !== "not set"
-      );
+    function validIdentity(pd, section) {
+      return typeof pd === "string" && /^[A-Z0-9-]+$/i.test(pd.trim()) &&
+        normalize(pd) !== "not set" && typeof section === "string" &&
+        !!normalize(section) && normalize(section) !== "not set";
     }
 
-    function employeeKey(name, section) {
-      return JSON.stringify([
-        normalize(name),
-        normalize(section)
-      ]);
+    function employeeKey(pd) {
+      return String(pd ?? "").trim().toUpperCase();
+    }
+
+    function displayName(name) {
+      return typeof name === "string" && name.trim() && normalize(name) !== "not set"
+        ? name.trim() : "Name not submitted";
     }
 
     function isOther(taskName) {
@@ -786,7 +746,7 @@
         if (
           !record ||
           !validIdentity(
-            record.employee_name,
+            record.pd,
             record.section
           )
         ) {
@@ -794,7 +754,7 @@
         }
 
         const key = employeeKey(
-          record.employee_name,
+          record.pd,
           record.section
         );
 
@@ -822,7 +782,7 @@
         if (
           !record ||
           !validIdentity(
-            record.employee_name,
+            record.pd,
             record.section
           )
         ) {
@@ -830,7 +790,7 @@
         }
 
         const key = employeeKey(
-          record.employee_name,
+          record.pd,
           record.section
         );
 
@@ -857,7 +817,7 @@
         if (
           !report ||
           !validIdentity(
-            report.employee_name,
+            report.pd,
             report.section
           )
         ) {
@@ -877,7 +837,7 @@
         }
 
         const identity = employeeKey(
-          report.employee_name,
+          report.pd,
           report.section
         );
 
@@ -916,7 +876,8 @@
           latest.set(
             JSON.stringify([identity, "empty-state"]),
             {
-              employee_name: report.employee_name.trim(),
+              pd: employeeKey(report.pd),
+              employee_name: displayName(report.employee_name),
               section: report.section.trim(),
               timestamp: report.timestamp,
               identity,
@@ -940,7 +901,8 @@
               Date.parse(previous.timestamp)
           ) {
             latest.set(key, {
-              employee_name: report.employee_name.trim(),
+              pd: employeeKey(report.pd),
+              employee_name: displayName(report.employee_name),
               section: report.section.trim(),
               timestamp: report.timestamp,
               identity,
@@ -981,7 +943,7 @@
         if (
           !entry ||
           !validIdentity(
-            entry.employee_name,
+            entry.pd,
             entry.section
           ) ||
           !Array.isArray(entry.tasks)
@@ -991,13 +953,13 @@
         }
 
         const key = employeeKey(
-          entry.employee_name,
+          entry.pd,
           entry.section
         );
 
         if (result.has(key)) {
           throw new Error(
-            "Duplicate employee name and section in the task catalog."
+            "Duplicate PD number in the task catalog."
           );
         }
 
@@ -1016,7 +978,8 @@
         }
 
         result.set(key, {
-          employee_name: entry.employee_name.trim(),
+          employee_name: displayName(entry.employee_name),
+          page: typeof entry.page === "string" ? entry.page : "",
           section: entry.section.trim(),
           pd: typeof entry.pd === "string"
             ? entry.pd
@@ -1034,12 +997,13 @@
     function getPeople() {
       const employees = new Map();
 
-      function addPerson(name, section) {
-        const key = employeeKey(name, section);
+      function addPerson(name, section, pd) {
+        const key = employeeKey(pd);
 
         if (!employees.has(key)) {
           employees.set(key, {
             key,
+            pd: key,
             name,
             section,
             timestamp: null,
@@ -1051,26 +1015,19 @@
         return employees.get(key);
       }
 
-      for (const employee of EMPLOYEE_PAGES) {
-        if (!employee.vacant) {
-          addPerson(
-            employee.name,
-            employee.section
-          );
-        }
-      }
-
       for (const catalog of catalogs.values()) {
         addPerson(
           catalog.employee_name,
-          catalog.section
+          catalog.section,
+          catalog.pd
         );
       }
 
       for (const report of reports) {
         const person = addPerson(
           report.employee_name,
-          report.section
+          report.section,
+          report.pd
         );
 
         if (
@@ -1165,7 +1122,7 @@
                 <button
                   data-employee="${escapeHTML(person.key)}"
                 >
-                  ${escapeHTML(person.name)}
+                  ${escapeHTML(person.name)} (${escapeHTML(person.pd)})
                 </button>
               </td>
               <td>
@@ -1203,7 +1160,7 @@
       $("analyticsEmployee").innerHTML =
         people.map(person => `
           <option value="${escapeHTML(person.key)}">
-            ${escapeHTML(person.name)}
+            ${escapeHTML(person.name)} (${escapeHTML(person.pd)})
             — ${escapeHTML(person.section)}
           </option>
         `).join("");
@@ -1217,6 +1174,7 @@
       }
 
       renderAnalytics();
+      populatePageNames();
     }
 
     function taskList(tasks) {
@@ -1353,7 +1311,7 @@
       $("analyticsContent").innerHTML = `
         <div class="card">
           <h2>
-            ${escapeHTML(person.name)}
+            ${escapeHTML(person.name)} (${escapeHTML(person.pd)})
             <small>
               — ${escapeHTML(person.section)}
             </small>
@@ -1372,7 +1330,7 @@
           ${
             !person.timestamp
               ? `<p class="muted">
-                   No submission matches this name and section.
+                   No submission matches this PD number.
                  </p>`
               : ""
           }
@@ -1617,14 +1575,14 @@
           if (parsedCatalogs.skipped) {
             catalogMessage =
               " " + parsedCatalogs.skipped +
-              " catalog entries were skipped because their name, " +
-              "section, or task list was missing.";
+              " catalog entries were skipped because their " +
+              "section, PD number, or task list was invalid.";
           }
         } catch (error) {
           catalogMessage =
             " Task comparisons are unavailable: " +
             error.message +
-            " Use the name-and-section catalog format in Setup.";
+            " Use the PD catalog format in Setup.";
         }
 
         reports = parsedReports.reports;
@@ -1636,7 +1594,7 @@
         $("status").textContent =
           "Shared reports refreshed " +
           new Date().toLocaleString() +
-          ". Reports missing a name or section: " +
+          ". Reports missing a valid PD or section: " +
           parsedReports.missingIdentity +
           ". Other invalid records or tasks skipped: " +
           parsedReports.invalidItems +
@@ -1693,20 +1651,27 @@
 
       $("pageStatus").textContent =
         "Requested " +
-        employee.name +
+        $("pageEmployee").selectedOptions[0].textContent +
         " — " +
         employee.section +
         ". Verify the name and section inside the page. " +
         "If it does not load, use Open in Separate Tab.";
     }
 
-    $("pageEmployee").innerHTML =
-      EMPLOYEE_PAGES.map((employee, index) => `
-        <option value="${index}">
-          ${escapeHTML(employee.name)}
-          — ${escapeHTML(employee.section)}
-        </option>
-      `).join("");
+    function populatePageNames() {
+      const selected = $("pageEmployee").value;
+      const people = getPeople();
+      $("pageEmployee").innerHTML = EMPLOYEE_PAGES.map((employee, index) => {
+        const catalog = [...catalogs.values()].find(item => item.page === employee.page);
+        const person = catalog && people.find(item => item.key === employeeKey(catalog.pd));
+        const label = catalog
+          ? `${person?.name || catalog.employee_name} (${employeeKey(catalog.pd)})`
+          : `${employee.name} — PD mapping needed`;
+        return `<option value="${index}">${escapeHTML(label)} — ${escapeHTML(employee.section)}</option>`;
+      }).join("");
+      if (selected) $("pageEmployee").value = selected;
+    }
+    populatePageNames();
 
     $("pageEmployee").addEventListener(
       "change",
