@@ -57,6 +57,11 @@ jobs:
               throw new Error('Missing submission data.');
             }
 
+            const pd = cleanText(payload.pd).toUpperCase();
+            if (!/^[A-Z0-9-]+$/.test(pd) || pd === 'NOT SET') {
+              throw new Error('A valid PD number from the employee page is required.');
+            }
+
             const employeeName = cleanText(payload.employee_name);
             const section = cleanText(payload.section).toUpperCase();
 
@@ -170,6 +175,7 @@ jobs:
 
             const newEntry = {
               timestamp: new Date().toISOString(),
+              pd,
               employee_name: employeeName,
               section,
               report_date: payload.date,
