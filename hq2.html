@@ -138,7 +138,7 @@
             <div class="flex-child">
                 <div class="tracker-header-wrap">
                     <h3 style="margin: 0;">Logged Tasks (Current Week)</h3>
-                    <button class="btn-transmit" onclick="transmitToGitHubAction()">🚀 TRANSMIT TO HQ</button>
+                    <button class="btn-transmit" onclick="transmitToCloudflare()">🚀 TRANSMIT TO HQ</button>
                 </div>
                 <table id="taskTable"><thead><tr><th>Date</th><th>Day</th><th>Task</th><th>Minutes</th><th>Action</th></tr></thead><tbody></tbody></table>
             </div>
@@ -595,55 +595,57 @@
             } 
         }
 
-        // OPTION B: Transmit safely to repository without exposing secret API tokens
-        async function transmitToGitHubAction() { 
-            if (tasks.length === 0) { 
-                alert("No tasks to transmit."); 
-                return; 
-            } 
-            if (!empInfo.name || empInfo.name.trim() === "") { 
-                alert("Please set employee Name in ADMIN settings before transmitting."); 
-                return; 
+        // CLOUDFLARE D1 TRANSMISSION
+        async function transmitToCloudflare() {
+            if (!tasks || tasks.length === 0) {
+                alert("Transmission Blocked: No executed tasks have been logged for transmission.");
+                return;
             }
 
-            // Prepare payload
+            const transmitBtn = document.querySelector('.btn-transmit');
+            const originalBtnText = transmitBtn.innerHTML;
+            transmitBtn.disabled = true;
+            transmitBtn.innerHTML = "⏳ TRANSMITTING...";
+
+            const targetEndpoint = "https://g1-tracker-api.j-enrique-alvarado.workers.dev/api/reports";
+            const todayStr = new Date().toISOString().split('T')[0];
+
             const payload = {
-                event_type: "submit_task_data",
-                client_payload: {
-                    name: empInfo.name,
-                    section: empInfo.section || "Not Set",
-                    uicParaLin: empInfo.uicParaLin || "Not Set",
-                    psn: empInfo.psn || "Not Set",
-                    date: new Date().toISOString().split('T')[0],
-                    tasks: tasks
-                }
+                pd: "M1470486FR",
+                report_date: todayStr,
+                tasks: tasks
             };
 
-            // Target Repository Config: mhrdnco/G1
-            const owner = "mhrdnco";
-            const repo = "G1"; 
-            const url = `https://api.github.com/repos/${owner}/${repo}/dispatches`;
-
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
+                const response = await fetch(targetEndpoint, {
+                    method: "POST",
                     headers: {
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify(payload)
                 });
 
-                if (response.status === 204 || response.status === 200) {
-                    alert("🚀 Data dispatched successfully! HQ is processing your update now.");
+                const result = await response.json().catch(() => ({}));
+
+                if (response.ok && result.success) {
+                    alert(`✅ Transmission Successful!
+
+Task data for ${result.employee || "Timothy Webster"} was saved to Cloudflare D1.
+Report ID: ${result.report_id ?? "N/A"}`);
                 } else {
-                    alert(`⚠️ Transmission returned status code: ${response.status}. Ensure GitHub repository dispatch is configured.`);
+                    alert(`❌ Transmission Failed (HTTP ${response.status}):
+${result.error || "Cloudflare rejected the report."}`);
                 }
-            } catch (error) {
-                console.error("Transmission error:", error);
-                alert("Failed to communicate with GitHub API.");
+            } catch (networkError) {
+                console.error("Cloudflare transmission error:", networkError);
+                alert(`⚠️ Network Error: Unable to reach the G1 Cloudflare API.
+${networkError.message}`);
+            } finally {
+                transmitBtn.disabled = false;
+                transmitBtn.innerHTML = originalBtnText;
             }
         }
+
     </script>
 </body>
 </html>
