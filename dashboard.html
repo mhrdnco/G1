@@ -7,59 +7,100 @@
 
   <style>
     :root {
-      font-family: Arial, sans-serif;
-      color: #183049;
-      background: #f3f6fa;
+      --navy: #17324d;
+      --teal: #167783;
+      --background: #f3f6fa;
+      --border: #dce4ed;
+      --muted: #64758a;
+      --text: #20364d;
     }
 
-    * { box-sizing: border-box; }
-    body { margin: 0; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: var(--background);
+    }
 
     header {
-      background: #132d46;
+      background: var(--navy);
       color: white;
-      padding: 28px 5%;
+      padding: 26px 4%;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 20px;
     }
 
-    header small { color: #b9cbdc; }
-    h1 { margin: 8px 0; font-size: 28px; }
-    h2 { font-size: 20px; }
-    p { line-height: 1.6; }
-    small, .muted { color: #64758a; }
+    header small {
+      color: #bed0e1;
+    }
+
+    h1 {
+      margin: 8px 0;
+      font-size: 28px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+
+    p, li {
+      line-height: 1.6;
+    }
 
     main {
-      max-width: 1400px;
+      max-width: 1500px;
       margin: auto;
       padding: 24px;
     }
 
     button, input, select {
       font: inherit;
-      padding: 10px;
-      border: 1px solid #ccd6e2;
+      padding: 10px 12px;
+      border: 1px solid #cbd7e3;
       border-radius: 7px;
       background: white;
-      color: #183049;
+      color: var(--text);
     }
 
-    button { cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
+    button {
+      cursor: pointer;
+    }
 
-    button.active {
-      background: #176b75;
+    button:hover {
+      border-color: var(--teal);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    button.active, .primary {
       color: white;
-      border-color: #176b75;
+      background: var(--teal);
+      border-color: var(--teal);
     }
 
-    .toolbar, nav {
+    a {
+      color: var(--teal);
+    }
+
+    nav, .toolbar {
       display: flex;
-      gap: 12px;
-      align-items: center;
       flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
       margin-bottom: 20px;
     }
 
@@ -72,7 +113,7 @@
 
     .card {
       background: white;
-      border: 1px solid #e0e6ed;
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 22px;
       margin-bottom: 20px;
@@ -87,43 +128,13 @@
     .metric b {
       display: block;
       font-size: 30px;
-      margin: 10px 0;
+      margin: 12px 0;
     }
 
     .metric span {
       font-size: 13px;
-      color: #64758a;
+      color: var(--muted);
     }
-
-    .notice {
-      background: #fff5dc;
-      padding: 14px 18px;
-      border-left: 4px solid #d5a12c;
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .table-wrap { overflow-x: auto; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th {
-      font-size: 12px;
-      color: #64758a;
-      background: #f6f8fb;
-    }
-
-    th, td {
-      padding: 13px;
-      border-bottom: 1px solid #e4e9ef;
-      vertical-align: top;
-    }
-
-    td:first-child { min-width: 180px; }
 
     .grid {
       display: grid;
@@ -131,48 +142,128 @@
       gap: 20px;
     }
 
-    li { margin: 12px 0; line-height: 1.5; }
-    .hidden { display: none; }
-    #status { margin-bottom: 18px; line-height: 1.6; }
+    .notice {
+      background: #fff5dc;
+      border-left: 4px solid #d6a235;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .info {
+      background: #eaf4f7;
+      border-left-color: var(--teal);
+    }
+
+    .muted, small {
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f5f8fb;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    td:first-child {
+      min-width: 190px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 5px;
+      font-size: 12px;
+      background: #e9f2f5;
+    }
 
     .bar {
       height: 7px;
-      background: #dce9ee;
-      border-radius: 10px;
       margin-top: 8px;
+      background: #e0ebef;
+      border-radius: 8px;
     }
 
     .bar i {
       display: block;
       height: 7px;
-      background: #176b75;
-      border-radius: 10px;
+      background: var(--teal);
+      border-radius: 8px;
+    }
+
+    #status, #filterStatus {
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    #employeeFrame {
+      width: 100%;
+      height: 900px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
     }
 
     pre {
       overflow-x: auto;
-      background: #f6f8fb;
       padding: 16px;
+      background: #f5f8fb;
       line-height: 1.5;
     }
 
     footer {
+      padding: 10px 0 25px;
       font-size: 13px;
+      color: var(--muted);
       line-height: 1.6;
-      color: #64758a;
-      padding-bottom: 25px;
     }
 
-    @media (max-width: 750px) {
-      .metrics { grid-template-columns: 1fr 1fr; }
-      .grid { grid-template-columns: 1fr; }
-      header { display: block; }
-      header button { margin-top: 16px; }
-      main { padding: 14px; }
+    @media (max-width: 800px) {
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        display: block;
+      }
+
+      header button {
+        margin-top: 16px;
+      }
+
+      main {
+        padding: 14px;
+      }
     }
 
     @media (max-width: 450px) {
-      .metrics { grid-template-columns: 1fr; }
+      .metrics {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -180,11 +271,12 @@
 <body>
   <header>
     <div>
-      <small>G1 MHRD / WORKFORCE INSIGHTS</small>
+      <small>G1 MHRD / WORKFORCE MANAGEMENT</small>
       <h1>Management Dashboard</h1>
-      <small>Reported workload · Position description review</small>
+      <small>Employee reports · Workload analytics · Position descriptions</small>
     </div>
-    <button id="refresh">Refresh Shared Reports</button>
+
+    <button id="refreshButton">Refresh Shared Reports</button>
   </header>
 
   <main>
@@ -192,174 +284,302 @@
       Loading shared reports…
     </div>
 
-    <div class="toolbar">
-      <label>
-        From
-        <input type="date" id="from">
-      </label>
-
-      <label>
-        Through
-        <input type="date" id="to">
-      </label>
-
-      <label>
-        Section
-        <select id="section">
-          <option value="">All sections</option>
-        </select>
-      </label>
-
-      <button id="allDates">All Reported Dates</button>
-    </div>
-
     <nav aria-label="Dashboard views">
       <button class="active" data-view="overview">
         Management Overview
       </button>
+
       <button data-view="analytics">
         Employee Analytics
       </button>
-      <button data-view="settings">
-        Shared Editing & Task Catalogs
+
+      <button data-view="pages">
+        Employee Pages
+      </button>
+
+      <button data-view="setup">
+        Setup & Shared Editing
       </button>
     </nav>
 
-    <div class="notice">
-      Reports reflect submitted work only. “No reported use” does not
-      mean an employee missed a required task. For each employee and
-      task week, this dashboard uses the latest submitted snapshot
-      containing tasks for that week.
+    <div id="reportFilters">
+      <div class="toolbar">
+        <label>
+          From
+          <input type="date" id="fromDate">
+        </label>
+
+        <label>
+          Through
+          <input type="date" id="throughDate">
+        </label>
+
+        <label>
+          Section
+          <select id="sectionFilter">
+            <option value="">All sections</option>
+          </select>
+        </label>
+
+        <button id="allDatesButton">All Reported Dates</button>
+      </div>
+
+      <div id="filterStatus" role="status"></div>
+
+      <div class="notice">
+        “No reported use” does not mean a required task was missed.
+        Results describe submitted work within the selected dates.
+        Repeated reports use the latest snapshot containing tasks for
+        each employee and task week.
+      </div>
     </div>
 
+    <!-- MANAGEMENT OVERVIEW -->
     <section id="overview">
-      <div class="metrics" id="metrics"></div>
+      <div class="metrics" id="overviewMetrics"></div>
 
       <div class="card">
         <h2>Employee Workload</h2>
+
         <p class="muted">
-          Select an employee to review task usage and position
-          description evidence. Employees without submissions require
-          a separate roster to appear here.
+          Employees are matched by name and section. Select an employee
+          to review task activity and position description evidence.
         </p>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Employee / PSN</th>
+                <th>Employee</th>
                 <th>Section</th>
-                <th>Hours</th>
+                <th>Reported Hours</th>
                 <th>Task Entries</th>
                 <th>Other Hours</th>
                 <th>Latest Submission</th>
               </tr>
             </thead>
-            <tbody id="employees"></tbody>
+            <tbody id="employeeRows"></tbody>
           </table>
         </div>
       </div>
     </section>
 
+    <!-- EMPLOYEE ANALYTICS -->
     <section id="analytics" class="hidden">
       <div class="toolbar">
         <label>
           Employee
-          <select id="employee"></select>
+          <select id="analyticsEmployee"></select>
         </label>
       </div>
 
-      <div id="analysis"></div>
+      <div id="analyticsContent"></div>
     </section>
 
-    <section id="settings" class="hidden">
+    <!-- EMBEDDED EMPLOYEE PAGES -->
+    <section id="pages" class="hidden">
       <div class="card">
-        <h2>Shared Administrator Edits</h2>
+        <h2>Employee Pages</h2>
+
+        <p>
+          Open an employee’s full tracker inside this dashboard.
+          The embedded page uses its existing controls and saving behavior.
+        </p>
 
         <div class="notice">
-          <strong>Shared editing is not connected.</strong>
-          This dashboard is read-only. No employee changes are saved
-          or transmitted from this page.
+          <strong>Shared recording is not connected yet.</strong>
+          In the employee code supplied so far, Master Save records
+          changes only in this browser. Transmit to HQ submits task
+          reports, but does not synchronize all employee settings.
+          This dashboard does not yet record who made each change.
         </div>
 
+        <div class="toolbar">
+          <label>
+            Employee
+            <select id="pageEmployee"></select>
+          </label>
+
+          <button id="openPageButton" class="primary">
+            Open Employee Page
+          </button>
+
+          <a id="separatePageLink" target="_blank" rel="noopener">
+            Open in Separate Tab
+          </a>
+        </div>
+
+        <p id="pageStatus" role="status">
+          Select an employee and open their page.
+        </p>
+
+        <p class="muted">
+          Before editing, verify the name and section displayed inside
+          the employee page. Selecting a page here does not change its
+          saved employee identity.
+        </p>
+
+        <iframe
+          id="employeeFrame"
+          title="Selected employee tracker"
+        ></iframe>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section id="setup" class="hidden">
+      <div class="card">
+        <h2>Name and Section Matching</h2>
+
         <p>
-          The existing employee pages save locally and transmit task
-          snapshots. They do not load administrator changes.
-          Editing a report here would not update those pages.
+          This dashboard matches records using
+          <strong>employee_name + section</strong>.
+          Capitalization and extra spaces are ignored.
+          Different spellings are treated as different people.
         </p>
 
         <p>
-          Shared editing requires each employee page to load its
-          shared record by PSN and save through an authenticated
-          service. That service must enforce administrator permissions
-          and prevent older records from overwriting newer changes.
+          Use the same employee name and section in the employee page,
+          submitted reports, and task catalog. Reports missing either
+          field are excluded and counted in the loading status.
         </p>
+
+        <div class="notice info">
+          Existing PSN fields can remain in data.json. This dashboard
+          does not use them for matching. Employees with the same name
+          in the same section cannot be distinguished by this approach.
+          A name or section change requires the historical records and
+          catalog to be updated consistently.
+        </div>
       </div>
 
       <div class="card">
-        <h2>Approved Position Description Tasks</h2>
+        <h2>Approved Task Catalog</h2>
 
         <p>
-          Place a file named <code>employee-catalogs.json</code>
-          beside this dashboard to enable comparisons between
-          approved tasks and reported work.
-        </p>
-
-        <p>
-          Replace the example identifiers and task names below with
-          each employee’s actual PSN, position description, and
-          complete approved task list.
+          Place <code>employee-catalogs.json</code> beside this HTML file
+          and <code>data.json</code>. Use the name-and-section format below.
+          The PD number can remain blank.
         </p>
 
         <pre>{
-  "employees": {
-    "EMPLOYEE_PSN": {
-      "pd": "POSITION_DESCRIPTION_ID",
+  "employees": [
+    {
+      "employee_name": "EXACT EMPLOYEE NAME",
+      "section": "HQ",
+      "pd": "",
       "tasks": [
         "Exact approved task name",
         "Another approved task name"
       ]
     }
-  }
+  ]
 }</pre>
 
+        <p>
+          Add one object for each employee. Include the complete approved
+          task list before relying on used-versus-unused comparisons.
+        </p>
+
         <p class="muted">
-          Without an approved catalog, reported hours and Other
-          descriptions remain available, but tasks with no reported
-          use cannot be identified.
+          A catalog keyed only by PSN must be updated to include
+          employee_name and section. This page does not guess which
+          name belongs to a PSN.
         </p>
       </div>
 
       <div class="card">
-        <h2>Reporting Limitations</h2>
+        <h2>Administrator Changes and Recording</h2>
+
         <p>
-          The existing workflow submits cumulative task lists without
-          an explicit reporting-week identifier. This dashboard groups
-          tasks by their actual task dates and selects the latest
-          snapshot for each employee and week.
+          The Employee Pages tab provides access to the existing pages.
+          It does not, by itself, make their local storage shared.
         </p>
+
         <p>
-          A submission that removes every task from a week cannot
-          communicate that deletion through the current format.
-          Explicit reporting-week identifiers and shared record
-          versions are needed for reliable corrections and deletions.
+          The next integration must update the employee pages and
+          saving workflow so administrator edits are stored centrally,
+          loaded by employees, and recorded with the authenticated
+          editor, timestamp, and previous and new values.
+        </p>
+
+        <p>
+          Until that integration is complete, a local save is not
+          confirmation that an employee received an update.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Current Reporting Limitations</h2>
+
+        <p>
+          The dashboard selects the latest snapshot containing tasks
+          for each employee and week, based on task dates.
+          It does not add every repeated transmission together.
+        </p>
+
+        <p>
+          The current submission format cannot reliably represent
+          deleting every task from a week. Explicit reporting periods
+          and shared record versions are needed for reliable
+          corrections and deletions.
+        </p>
+
+        <p>
+          Refresh reads the published data.json file. A repository
+          update must be available on the website before it appears here.
         </p>
       </div>
     </section>
 
     <footer>
-      Minutes and hours describe reported time, not performance ratings.
-      Verify task catalog completeness and reporting coverage before
-      making position description decisions.
+      Reported time supports management review; it is not a performance
+      rating. Confirm reporting completeness, task catalog accuracy,
+      and recurring work before changing a position description.
     </footer>
   </main>
 
   <script>
     "use strict";
 
+    /*
+      Employee page directory.
+
+      Keep these names consistent with the names entered on the
+      employee pages. Update spellings here when necessary.
+    */
+    const EMPLOYEE_PAGES = [
+      { name: "Jarod Groves", section: "HQ", page: "hq1.html" },
+      { name: "Timothy Webster", section: "HQ", page: "hq2.html" },
+
+      { name: "Miguel Mattei", section: "SMB", page: "smb4.html" },
+      { name: "Marion Kwon", section: "SMB", page: "smb1.html" },
+      { name: "Andrew Tondre", section: "SMB", page: "smb3.html" },
+      { name: "Denise Serrano", section: "SMB", page: "smb2.html" },
+
+      { name: "David Garcia", section: "STB", page: "stb2.html" },
+      { name: "Oscar Jimenez", section: "STB", page: "stb1.html" },
+
+      { name: "Kevin Moore", section: "HROB", page: "hrob3.html" },
+      { name: "Kimberly Cheatham", section: "HROB", page: "hrob1.html" },
+      { name: "Chandler Vargas", section: "HROB", page: "hrob2.html" },
+
+      { name: "Tennille Witherspoon", section: "EPSB", page: "epsb3.html" },
+      { name: "Nakita Miller", section: "EPSB", page: "epsb1.html" },
+      { name: "Vacant 1", section: "EPSB", page: "epsb2.html", vacant: true },
+      { name: "Vacant 2", section: "EPSB", page: "epsb4.html", vacant: true }
+    ];
+
+    const EMPLOYEE_PAGE_BASE = "https://mhrdnco.github.io/G1/";
+
     let reports = [];
-    let catalogs = {};
-    let skippedItems = 0;
+    let catalogs = new Map();
+
+    let appliedFilters = {
+      from: "",
+      through: "",
+      section: ""
+    };
 
     const $ = id => document.getElementById(id);
 
@@ -385,8 +605,26 @@
         .toLowerCase();
     }
 
-    function isOther(task) {
-      return /^other(?:\s*:|$)/i.test(task.trim());
+    function validIdentity(name, section) {
+      return (
+        typeof name === "string" &&
+        typeof section === "string" &&
+        normalize(name) !== "" &&
+        normalize(section) !== "" &&
+        normalize(name) !== "not set" &&
+        normalize(section) !== "not set"
+      );
+    }
+
+    function employeeKey(name, section) {
+      return JSON.stringify([
+        normalize(name),
+        normalize(section)
+      ]);
+    }
+
+    function isOther(taskName) {
+      return /^other(?:\s*:|$)/i.test(taskName.trim());
     }
 
     function validDate(value) {
@@ -433,7 +671,7 @@
     }
 
     function switchView(view) {
-      for (const name of ["overview", "analytics", "settings"]) {
+      for (const name of ["overview", "analytics", "pages", "setup"]) {
         $(name).classList.toggle("hidden", name !== view);
       }
 
@@ -443,20 +681,20 @@
           button.dataset.view === view
         );
       });
+
+      $("reportFilters").classList.toggle(
+        "hidden",
+        view === "pages" || view === "setup"
+      );
     }
 
-    /*
-      Each transmission contains a cumulative snapshot.
-      Keep the newest snapshot per employee and task week.
-      Do not deduplicate individual task rows: repeated work may
-      legitimately have the same date, description, and duration.
-    */
     function selectLatestSnapshots(rawReports) {
       const latest = new Map();
-      skippedItems = 0;
+      let missingIdentity = 0;
+      let invalidItems = 0;
 
       for (const report of rawReports) {
-        // Ignore the legacy metadata placeholder.
+        // Ignore the old metadata-only placeholder.
         if (
           report &&
           report.employees &&
@@ -467,14 +705,18 @@
 
         if (
           !report ||
-          typeof report.psn !== "string" ||
-          !report.psn.trim() ||
-          normalize(report.psn) === "not set" ||
+          !validIdentity(report.employee_name, report.section)
+        ) {
+          missingIdentity++;
+          continue;
+        }
+
+        if (
           !Array.isArray(report.tasks_logged) ||
           typeof report.timestamp !== "string" ||
           !Number.isFinite(Date.parse(report.timestamp))
         ) {
-          skippedItems++;
+          invalidItems++;
           continue;
         }
 
@@ -489,7 +731,7 @@
             !Number.isFinite(task.time) ||
             task.time <= 0
           ) {
-            skippedItems++;
+            invalidItems++;
             continue;
           }
 
@@ -502,9 +744,13 @@
           groupedTasks.get(week).push(task);
         }
 
+        const identity = employeeKey(
+          report.employee_name,
+          report.section
+        );
+
         for (const [week, tasks] of groupedTasks) {
-          const psn = report.psn.trim();
-          const key = psn + "|" + week;
+          const key = JSON.stringify([identity, week]);
           const previous = latest.get(key);
 
           if (
@@ -513,8 +759,10 @@
               Date.parse(previous.timestamp)
           ) {
             latest.set(key, {
-              ...report,
-              psn,
+              employee_name: report.employee_name.trim(),
+              section: report.section.trim(),
+              timestamp: report.timestamp,
+              identity,
               week,
               tasks_logged: tasks
             });
@@ -522,44 +770,122 @@
         }
       }
 
-      return [...latest.values()];
+      return {
+        reports: [...latest.values()],
+        missingIdentity,
+        invalidItems
+      };
+    }
+
+    function parseCatalogs(data) {
+      const source = data?.employees;
+
+      if (
+        !source ||
+        typeof source !== "object"
+      ) {
+        throw new Error("Invalid employee catalog structure.");
+      }
+
+      const entries = Array.isArray(source)
+        ? source
+        : Object.values(source);
+
+      const result = new Map();
+      let skipped = 0;
+
+      for (const entry of entries) {
+        if (
+          !entry ||
+          !validIdentity(entry.employee_name, entry.section) ||
+          !Array.isArray(entry.tasks)
+        ) {
+          skipped++;
+          continue;
+        }
+
+        const key = employeeKey(
+          entry.employee_name,
+          entry.section
+        );
+
+        if (result.has(key)) {
+          throw new Error(
+            "Duplicate employee name and section in the task catalog."
+          );
+        }
+
+        const taskMap = new Map();
+
+        for (const task of entry.tasks) {
+          if (typeof task === "string" && task.trim()) {
+            taskMap.set(normalize(task), task.trim());
+          }
+        }
+
+        result.set(key, {
+          employee_name: entry.employee_name.trim(),
+          section: entry.section.trim(),
+          pd: typeof entry.pd === "string" ? entry.pd : "",
+          tasks: [...taskMap.values()]
+        });
+      }
+
+      return { catalogs: result, skipped };
     }
 
     function getPeople() {
       const employees = new Map();
-      const from = $("from").value;
-      const through = $("to").value;
-      const section = $("section").value;
 
-      for (const report of reports) {
-        let person = employees.get(report.psn);
+      function addPerson(name, section) {
+        const key = employeeKey(name, section);
 
-        if (!person) {
-          person = {
-            psn: report.psn,
-            name: report.employee_name || report.psn,
-            section: report.section || "Unspecified",
-            timestamp: report.timestamp,
+        if (!employees.has(key)) {
+          employees.set(key, {
+            key,
+            name,
+            section,
+            timestamp: null,
             tasks: [],
             weeks: new Set()
-          };
-
-          employees.set(report.psn, person);
+          });
         }
 
+        return employees.get(key);
+      }
+
+      // Include known employees even when they have not submitted.
+      for (const employee of EMPLOYEE_PAGES) {
+        if (!employee.vacant) {
+          addPerson(employee.name, employee.section);
+        }
+      }
+
+      for (const catalog of catalogs.values()) {
+        addPerson(catalog.employee_name, catalog.section);
+      }
+
+      for (const report of reports) {
+        const person = addPerson(
+          report.employee_name,
+          report.section
+        );
+
         if (
-          Date.parse(report.timestamp) >=
-          Date.parse(person.timestamp)
+          !person.timestamp ||
+          Date.parse(report.timestamp) >= Date.parse(person.timestamp)
         ) {
           person.timestamp = report.timestamp;
-          person.name = report.employee_name || person.name;
-          person.section = report.section || person.section;
+          person.name = report.employee_name;
+          person.section = report.section;
         }
 
         for (const task of report.tasks_logged) {
           if (
-            (!from || task.date >= from) &&
-            (!through || task.date <= through)
+            (!appliedFilters.from ||
+              task.date >= appliedFilters.from) &&
+            (!appliedFilters.through ||
+              task.date <= appliedFilters.through)
           ) {
             person.tasks.push(task);
             person.weeks.add(report.week);
@@ -568,13 +894,19 @@
       }
 
       return [...employees.values()]
-        .filter(person => !section || person.section === section)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .filter(person =>
+          !appliedFilters.section ||
+          normalize(person.section) === appliedFilters.section
+        )
+        .sort((a, b) =>
+          a.name.localeCompare(b.name) ||
+          a.section.localeCompare(b.section)
+        );
     }
 
     function render() {
       const people = getPeople();
-      const selectedEmployee = $("employee").value;
+      const selected = $("analyticsEmployee").value;
       const tasks = people.flatMap(person => person.tasks);
 
       const minutes = totalMinutes(tasks);
@@ -582,11 +914,11 @@
         tasks.filter(task => isOther(task.task))
       );
 
-      $("metrics").innerHTML =
+      $("overviewMetrics").innerHTML =
         metric(
           "Employees With Activity",
           people.filter(person => person.tasks.length > 0).length,
-          "Within selected dates"
+          people.length + " employees in current selection"
         ) +
         metric(
           "Reported Hours",
@@ -596,17 +928,17 @@
         metric(
           "Other Hours",
           hours(otherMinutes),
-          "Typed descriptions for review"
+          "Typed work descriptions"
         ) +
         metric(
           "Other Share",
           minutes
             ? (100 * otherMinutes / minutes).toFixed(1) + "%"
             : "—",
-          "Share of reported minutes"
+          "Share of reported time"
         );
 
-      $("employees").innerHTML = people.map(person => {
+      $("employeeRows").innerHTML = people.map(person => {
         const otherTasks = person.tasks.filter(
           task => isOther(task.task)
         );
@@ -614,40 +946,52 @@
         return `
           <tr>
             <td>
-              <button data-psn="${escapeHTML(person.psn)}">
+              <button data-employee="${escapeHTML(person.key)}">
                 ${escapeHTML(person.name)}
               </button>
-              <br>
-              <small>${escapeHTML(person.psn)}</small>
             </td>
-            <td>${escapeHTML(person.section)}</td>
+            <td>
+              <span class="badge">${escapeHTML(person.section)}</span>
+            </td>
             <td>${hours(totalMinutes(person.tasks))}</td>
             <td>${person.tasks.length}</td>
             <td>${hours(totalMinutes(otherTasks))}</td>
             <td>
-              ${escapeHTML(
-                new Date(person.timestamp).toLocaleString()
-              )}
+              ${person.timestamp
+                ? escapeHTML(
+                    new Date(person.timestamp).toLocaleString()
+                  )
+                : "No matched submission"}
             </td>
           </tr>
         `;
       }).join("") || `
         <tr>
-          <td colspan="6">No employee reports available.</td>
+          <td colspan="6">No employees match this selection.</td>
         </tr>
       `;
 
-      $("employee").innerHTML = people.map(person => `
-        <option value="${escapeHTML(person.psn)}">
-          ${escapeHTML(person.name)} · ${escapeHTML(person.psn)}
+      $("analyticsEmployee").innerHTML = people.map(person => `
+        <option value="${escapeHTML(person.key)}">
+          ${escapeHTML(person.name)} — ${escapeHTML(person.section)}
         </option>
       `).join("");
 
-      if (people.some(person => person.psn === selectedEmployee)) {
-        $("employee").value = selectedEmployee;
+      if (people.some(person => person.key === selected)) {
+        $("analyticsEmployee").value = selected;
       }
 
-      renderAnalysis();
+      renderAnalytics();
+    }
+
+    function taskList(tasks) {
+      if (!tasks.length) {
+        return "<p>None in this period.</p>";
+      }
+
+      return "<ul>" + tasks.map(task =>
+        `<li>${escapeHTML(task)}</li>`
+      ).join("") + "</ul>";
     }
 
     function taskTable(entries, total) {
@@ -670,7 +1014,7 @@
         `;
       }).join("") || `
         <tr>
-          <td colspan="5">No entries in this period.</td>
+          <td colspan="5">No entries in the selected period.</td>
         </tr>
       `;
 
@@ -692,39 +1036,19 @@
       `;
     }
 
-    function taskList(tasks) {
-      if (!tasks.length) {
-        return "<p>None in this period.</p>";
-      }
-
-      return "<ul>" + tasks.map(task =>
-        `<li>${escapeHTML(task)}</li>`
-      ).join("") + "</ul>";
-    }
-
-    function renderAnalysis() {
+    function renderAnalytics() {
       const person = getPeople().find(
-        item => item.psn === $("employee").value
+        employee => employee.key === $("analyticsEmployee").value
       );
 
       if (!person) {
-        $("analysis").innerHTML =
+        $("analyticsContent").innerHTML =
           '<div class="card">No employee selected.</div>';
         return;
       }
 
-      const catalog = catalogs[person.psn];
-
-      const approvedTasks = Array.isArray(catalog?.tasks)
-        ? [...new Set(
-            catalog.tasks
-              .filter(task =>
-                typeof task === "string" && task.trim()
-              )
-              .map(task => task.trim())
-          )]
-        : null;
-
+      const catalog = catalogs.get(person.key);
+      const approvedTasks = catalog?.tasks ?? null;
       const totals = new Map();
 
       for (const task of person.tasks) {
@@ -750,6 +1074,11 @@
       );
 
       const minutes = totalMinutes(person.tasks);
+      const other = entries.filter(entry => isOther(entry.label));
+      const otherMinutes = other.reduce(
+        (sum, entry) => sum + entry.minutes,
+        0
+      );
 
       const used = approvedTasks
         ? approvedTasks.filter(task => totals.has(normalize(task)))
@@ -758,8 +1087,6 @@
       const unused = approvedTasks
         ? approvedTasks.filter(task => !totals.has(normalize(task)))
         : [];
-
-      const other = entries.filter(entry => isOther(entry.label));
 
       const unmatched = approvedTasks
         ? entries.filter(entry =>
@@ -770,43 +1097,49 @@
           )
         : [];
 
-      $("analysis").innerHTML = `
+      $("analyticsContent").innerHTML = `
         <div class="card">
           <h2>
             ${escapeHTML(person.name)}
-            <small>/ ${escapeHTML(person.psn)}</small>
+            <small>— ${escapeHTML(person.section)}</small>
           </h2>
           <p>
-            ${escapeHTML(person.section)}
-            · ${person.weeks.size} weeks with reported activity
-            · ${hours(minutes)} hours
+            ${person.weeks.size} weeks with reported activity
             ${catalog?.pd
               ? " · PD " + escapeHTML(catalog.pd)
               : ""}
           </p>
+          ${!person.timestamp
+            ? '<p class="muted">No submission matches this name and section.</p>'
+            : ""}
+        </div>
+
+        <div class="metrics">
+          ${metric("Reported Hours", hours(minutes), "Selected dates")}
+          ${metric("Task Entries", person.tasks.length, "Reported entries")}
+          ${metric("Other Hours", hours(otherMinutes), "Typed descriptions")}
+          ${metric(
+            "Approved Tasks Used",
+            approvedTasks ? used.length + " / " + approvedTasks.length : "—",
+            approvedTasks ? "Catalog coverage" : "Task catalog needed"
+          )}
         </div>
 
         <div class="grid">
           <div class="card">
-            <h2>
-              Approved Tasks With Reported Use
-              (${approvedTasks ? used.length : "unknown"})
-            </h2>
+            <h2>Approved Tasks With Reported Use</h2>
             ${approvedTasks
               ? taskList(used)
-              : "<p>An approved task catalog is needed for this employee.</p>"}
+              : "<p>Add this employee’s approved task catalog to enable comparison.</p>"}
           </div>
 
           <div class="card">
-            <h2>
-              Approved Tasks With No Reported Use
-              (${approvedTasks ? unused.length : "unknown"})
-            </h2>
+            <h2>Approved Tasks With No Reported Use</h2>
             ${approvedTasks
               ? taskList(unused)
-              : "<p>Unused tasks cannot be determined from submissions alone.</p>"}
+              : "<p>Unused tasks cannot be identified from submitted tasks alone.</p>"}
             <p class="muted">
-              This describes reporting coverage, not missed assignments.
+              No reported use is not evidence of a missed assignment.
             </p>
           </div>
         </div>
@@ -814,8 +1147,8 @@
         <div class="card">
           <h2>Other: Typed Work Descriptions</h2>
           <p class="muted">
-            Compare recurring work, reported hours, and weeks represented
-            when considering a position description change.
+            Use reported hours, frequency, and weeks represented to
+            identify recurring work for position description review.
           </p>
           ${taskTable(other, minutes)}
         </div>
@@ -833,27 +1166,95 @@
         </div>
 
         <div class="card">
-          <h2>Management Review Prompts</h2>
+          <h2>Position Description Review</h2>
           <ul>
             <li>
-              Review recurring Other descriptions and their reported
-              hours for possible inclusion in the position description.
+              Review recurring Other work and its share of reported time
+              for possible inclusion in the position description.
             </li>
             <li>
-              Confirm whether tasks with no reported use are seasonal,
-              assigned elsewhere, or missing from reporting.
+              Check whether unused approved tasks are seasonal,
+              reassigned, or absent from reporting.
             </li>
             <li>
-              Validate reporting completeness and the approved catalog
-              before documenting a proposed change.
+              Confirm that different descriptions do not represent
+              the same work before drawing conclusions.
+            </li>
+            <li>
+              Validate reporting completeness with the employee before
+              documenting a proposed position description change.
             </li>
           </ul>
         </div>
       `;
     }
 
+    function populateSections() {
+      const sections = new Map();
+
+      for (const employee of EMPLOYEE_PAGES) {
+        sections.set(
+          normalize(employee.section),
+          employee.section.toUpperCase()
+        );
+      }
+
+      for (const report of reports) {
+        sections.set(
+          normalize(report.section),
+          report.section.toUpperCase()
+        );
+      }
+
+      for (const catalog of catalogs.values()) {
+        sections.set(
+          normalize(catalog.section),
+          catalog.section.toUpperCase()
+        );
+      }
+
+      $("sectionFilter").innerHTML =
+        '<option value="">All sections</option>' +
+        [...sections.entries()]
+          .sort((a, b) => a[1].localeCompare(b[1]))
+          .map(([key, label]) => `
+            <option value="${escapeHTML(key)}">
+              ${escapeHTML(label)}
+            </option>
+          `).join("");
+
+      if (sections.has(appliedFilters.section)) {
+        $("sectionFilter").value = appliedFilters.section;
+      } else {
+        $("sectionFilter").value = "";
+        appliedFilters.section = "";
+      }
+    }
+
+    function applyFilters() {
+      const from = $("fromDate").value;
+      const through = $("throughDate").value;
+
+      if (from && through && from > through) {
+        $("filterStatus").textContent =
+          "The start date must be on or before the end date. " +
+          "The previous valid filters remain applied.";
+        return;
+      }
+
+      $("filterStatus").textContent = "";
+
+      appliedFilters = {
+        from,
+        through,
+        section: $("sectionFilter").value
+      };
+
+      render();
+    }
+
     async function loadReports() {
-      $("refresh").disabled = true;
+      $("refreshButton").disabled = true;
       $("status").textContent = "Loading shared reports…";
 
       try {
@@ -876,8 +1277,9 @@
           );
         }
 
-        reports = selectLatestSnapshots(raw);
+        const parsedReports = selectLatestSnapshots(raw);
 
+        let nextCatalogs = new Map();
         let catalogMessage = "";
 
         try {
@@ -890,61 +1292,99 @@
             throw new Error("Task catalog unavailable.");
           }
 
-          const catalogData = await catalogResponse.json();
+          const parsedCatalogs = parseCatalogs(
+            await catalogResponse.json()
+          );
 
-          if (
-            !catalogData.employees ||
-            typeof catalogData.employees !== "object" ||
-            Array.isArray(catalogData.employees)
-          ) {
-            throw new Error("Invalid task catalog.");
+          nextCatalogs = parsedCatalogs.catalogs;
+
+          if (parsedCatalogs.skipped) {
+            catalogMessage =
+              " " + parsedCatalogs.skipped +
+              " catalog entries were skipped because their name, " +
+              "section, or task list was missing.";
           }
-
-          catalogs = catalogData.employees;
         } catch (error) {
-          catalogs = {};
           catalogMessage =
-            " Approved task catalogs are unavailable; " +
-            "unused-task comparisons are disabled.";
+            " Task comparisons are unavailable: " +
+            error.message +
+            " Use the name-and-section catalog format in Setup.";
         }
 
-        const previousSection = $("section").value;
+        reports = parsedReports.reports;
+        catalogs = nextCatalogs;
 
-        const sections = [...new Set(
-          reports.map(report => report.section || "Unspecified")
-        )].sort();
-
-        $("section").innerHTML =
-          '<option value="">All sections</option>' +
-          sections.map(section => `
-            <option value="${escapeHTML(section)}">
-              ${escapeHTML(section)}
-            </option>
-          `).join("");
-
-        $("section").value = sections.includes(previousSection)
-          ? previousSection
-          : "";
+        populateSections();
+        render();
 
         $("status").textContent =
           "Shared reports refreshed " +
           new Date().toLocaleString() +
-          ". " + skippedItems +
-          " invalid records or tasks skipped." +
+          ". Reports missing a name or section: " +
+          parsedReports.missingIdentity +
+          ". Other invalid records or tasks skipped: " +
+          parsedReports.invalidItems +
+          "." +
           catalogMessage;
-
-        render();
       } catch (error) {
         $("status").textContent =
-          "Unable to refresh shared reports: " +
+          "Unable to refresh reports: " +
           error.message +
           " Previously loaded results, if any, remain visible. " +
-          "Host this file beside data.json on your website; " +
-          "opening the HTML directly from your computer may block loading.";
+          "Publish this HTML beside data.json; opening it directly " +
+          "from your computer may block loading.";
       } finally {
-        $("refresh").disabled = false;
+        $("refreshButton").disabled = false;
       }
     }
+
+    function selectedPageURL() {
+      const index = Number($("pageEmployee").value);
+      const employee = EMPLOYEE_PAGES[index];
+
+      return new URL(employee.page, EMPLOYEE_PAGE_BASE).href;
+    }
+
+    function updatePageLink() {
+      $("separatePageLink").href = selectedPageURL();
+    }
+
+    function openEmployeePage() {
+      const frame = $("employeeFrame");
+      const requestedURL = selectedPageURL();
+
+      if (
+        frame.getAttribute("src") &&
+        !confirm(
+          "Open the selected employee page? " +
+          "Save unfinished entries in the current page first."
+        )
+      ) {
+        return;
+      }
+
+      const employee =
+        EMPLOYEE_PAGES[Number($("pageEmployee").value)];
+
+      frame.src = requestedURL;
+
+      $("pageStatus").textContent =
+        "Requested " + employee.name + " — " + employee.section +
+        ". Verify the name and section inside the page. " +
+        "If it does not load, use Open in Separate Tab.";
+    }
+
+    $("pageEmployee").innerHTML = EMPLOYEE_PAGES.map(
+      (employee, index) => `
+        <option value="${index}">
+          ${escapeHTML(employee.name)} —
+          ${escapeHTML(employee.section)}
+        </option>
+      `
+    ).join("");
+
+    $("pageEmployee").addEventListener("change", updatePageLink);
+    $("openPageButton").addEventListener("click", openEmployeePage);
 
     document.querySelectorAll("[data-view]").forEach(button => {
       button.addEventListener("click", () => {
@@ -952,43 +1392,36 @@
       });
     });
 
-    $("refresh").addEventListener("click", loadReports);
+    $("refreshButton").addEventListener("click", loadReports);
 
-    for (const id of ["from", "to", "section"]) {
-      $(id).addEventListener("change", () => {
-        if (
-          $("from").value &&
-          $("to").value &&
-          $("from").value > $("to").value
-        ) {
-          $("status").textContent =
-            "The start date must be on or before the end date. " +
-            "Displayed results have not changed.";
-          return;
-        }
-
-        render();
-      });
+    for (const id of ["fromDate", "throughDate", "sectionFilter"]) {
+      $(id).addEventListener("change", applyFilters);
     }
 
-    $("employee").addEventListener("change", renderAnalysis);
+    $("allDatesButton").addEventListener("click", () => {
+      $("fromDate").value = "";
+      $("throughDate").value = "";
+      applyFilters();
+    });
 
-    $("employees").addEventListener("click", event => {
-      const button = event.target.closest("[data-psn]");
+    $("analyticsEmployee").addEventListener(
+      "change",
+      renderAnalytics
+    );
+
+    $("employeeRows").addEventListener("click", event => {
+      const button = event.target.closest("[data-employee]");
 
       if (button) {
-        $("employee").value = button.dataset.psn;
-        renderAnalysis();
+        $("analyticsEmployee").value = button.dataset.employee;
+        renderAnalytics();
         switchView("analytics");
       }
     });
 
-    $("allDates").addEventListener("click", () => {
-      $("from").value = "";
-      $("to").value = "";
-      render();
-    });
-
+    updatePageLink();
+    populateSections();
+    render();
     loadReports();
   </script>
 </body>
