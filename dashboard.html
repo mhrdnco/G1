@@ -1526,24 +1526,43 @@
 
       try {
         const response = await fetch(
-          new URL("data.json", location.href),
+          "https://g1-tracker-api.j-enrique-alvarado.workers.dev/api/reports",
           { cache: "no-store" }
         );
 
         if (!response.ok) {
           throw new Error(
-            "data.json returned HTTP " +
+            "Cloudflare reports API returned HTTP " +
             response.status
           );
         }
 
-        const raw = await response.json();
+        const cloudflareRows = await response.json();
 
-        if (!Array.isArray(raw)) {
+        if (!Array.isArray(cloudflareRows)) {
           throw new Error(
-            "data.json must contain an array of submissions."
+            "Cloudflare reports API must return an array."
           );
         }
+
+        const raw = cloudflareRows.map(row => {
+          let tasks = [];
+
+          try {
+            tasks = JSON.parse(row.tasks_json || "[]");
+          } catch (error) {
+            console.warn("Invalid tasks_json for report", row.id, error);
+          }
+
+          return {
+            pd: row.pd,
+            employee_name: row.employee_name,
+            section: row.section,
+            page: row.page,
+            timestamp: row.created_at,
+            tasks_logged: Array.isArray(tasks) ? tasks : []
+          };
+        });
 
         const parsedReports =
           selectLatestSnapshots(raw);
@@ -1604,9 +1623,7 @@
         $("status").textContent =
           "Unable to refresh reports: " +
           error.message +
-          " Previously loaded results, if any, remain visible. " +
-          "Publish this HTML beside data.json; opening it directly " +
-          "from your computer may block loading.";
+          " Previously loaded results, if any, remain visible.";
       } finally {
         $("refreshButton").disabled = false;
       }
