@@ -1,11 +1,20 @@
 {
-  "employees": {
-    "A0485155": {
+  "employees": [
+    {
+      "employee_name": "EXACT EMPLOYEE NAME",
+      "section": "HQ",
       "pd": "M1608429FR",
       "tasks": [
+        "IPPS-A Command HR SME & Deployment Mgmt",
+        "MILPAY & IPPS-A Upgrade Training Execution",
         "HR Systems Data Extraction & Analysis",
-        "ENTER_ANOTHER_APPROVED_TASK"
+        "Workflow Modeling & Compliance Reporting",
+        "Resolution of Personnel Software Deficiencies",
+        "Strategic Communications & Change Management",
+        "Customer Relations Management (CRM) Support",
+        "Technical Reviews of HR Allocation Models",
+        "Briefings, Conferences & IPR Presentations"
       ]
     }
-  }
+  ]
 }
