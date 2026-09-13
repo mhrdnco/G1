@@ -1,315 +1,995 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G1 MHRD - ADMIN WEEKLY DASHBOARD</title>
-    <style>
-        :root {
-            --mil-black: #000000;
-            --panel-bg: #0d120d;
-            --sidebar-bg: #090c09;
-            --border-green: #3d523d;
-            --tac-amber: #e5a93c;
-            --tac-red: #c0392b;
-            --terminal-text: #c2d4c2;
-            --active-bg: #1e291e;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>G1 MHRD | Management Dashboard</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Consolas', 'Courier New', Courier, monospace;
-        }
+  <style>
+    :root {
+      font-family: Arial, sans-serif;
+      color: #183049;
+      background: #f3f6fa;
+    }
 
-        body {
-            background-color: var(--mil-black);
-            color: var(--terminal-text);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            text-transform: uppercase;
-        }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
 
-        /* Top Bar */
-        .hud-header {
-            background-color: var(--panel-bg);
-            border-bottom: 2px solid var(--border-green);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 60px;
-        }
+    header {
+      background: #132d46;
+      color: white;
+      padding: 28px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
 
-        .header-title {
-            font-size: 16px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: var(--tac-amber);
-        }
+    header small { color: #b9cbdc; }
+    h1 { margin: 8px 0; font-size: 28px; }
+    h2 { font-size: 20px; }
+    p { line-height: 1.6; }
+    small, .muted { color: #64758a; }
 
-        .tab-badge {
-            background-color: rgba(61, 82, 61, 0.4);
-            border: 1px solid var(--border-green);
-            padding: 4px 10px;
-            color: #8da48d;
-            font-size: 12px;
-            letter-spacing: 1px;
-        }
+    main {
+      max-width: 1400px;
+      margin: auto;
+      padding: 24px;
+    }
 
-        /* App Layout */
-        .dashboard-container {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 60px);
-        }
+    button, input, select {
+      font: inherit;
+      padding: 10px;
+      border: 1px solid #ccd6e2;
+      border-radius: 7px;
+      background: white;
+      color: #183049;
+    }
 
-        /* Left Sidebar */
-        .sidebar {
-            width: 310px;
-            background-color: var(--sidebar-bg);
-            border-right: 2px solid var(--border-green);
-            overflow-y: auto;
-            padding: 16px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+    button { cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
 
-        .branch-group {
-            border: 1px solid rgba(61, 82, 61, 0.5);
-            background-color: rgba(13, 18, 13, 0.6);
-            padding: 8px;
-        }
+    button.active {
+      background: #176b75;
+      color: white;
+      border-color: #176b75;
+    }
 
-        .branch-title {
-            font-size: 11px;
-            font-weight: bold;
-            color: var(--tac-amber);
-            border-bottom: 1px dashed var(--border-green);
-            padding-bottom: 4px;
-            margin-bottom: 8px;
-            letter-spacing: 1px;
-        }
+    .toolbar, nav {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
 
-        .nav-btn {
-            width: 100%;
-            background-color: transparent;
-            border: 1px solid var(--border-green);
-            color: var(--terminal-text);
-            padding: 8px 12px;
-            font-size: 12px;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-            transition: all 0.15s ease;
-            outline: none;
-        }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
 
-        .nav-btn:hover {
-            background-color: var(--active-bg);
-            border-color: var(--tac-amber);
-        }
+    .card {
+      background: white;
+      border: 1px solid #e0e6ed;
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
 
-        .nav-btn.active {
-            background-color: var(--active-bg);
-            border-color: var(--tac-amber);
-            color: var(--tac-amber);
-            font-weight: bold;
-            box-shadow: inset 3px 0 0 var(--tac-amber);
-        }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
 
-        .nav-btn.vacant {
-            border-style: dashed;
-        }
+    .metric b {
+      display: block;
+      font-size: 30px;
+      margin: 10px 0;
+    }
 
-        .nav-btn.vacant span:first-child {
-            color: var(--tac-red);
-        }
+    .metric span {
+      font-size: 13px;
+      color: #64758a;
+    }
 
-        /* Main Viewport Panel */
-        .viewport-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--mil-black);
-        }
+    .notice {
+      background: #fff5dc;
+      padding: 14px 18px;
+      border-left: 4px solid #d5a12c;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
 
-        .viewport-header {
-            background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border-green);
-            padding: 8px 16px;
-            font-size: 11px;
-            color: #7b947b;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .table-wrap { overflow-x: auto; }
 
-        .viewport-frame {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: #ffffff;
-        }
-    </style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      font-size: 12px;
+      color: #64758a;
+      background: #f6f8fb;
+    }
+
+    th, td {
+      padding: 13px;
+      border-bottom: 1px solid #e4e9ef;
+      vertical-align: top;
+    }
+
+    td:first-child { min-width: 180px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    li { margin: 12px 0; line-height: 1.5; }
+    .hidden { display: none; }
+    #status { margin-bottom: 18px; line-height: 1.6; }
+
+    .bar {
+      height: 7px;
+      background: #dce9ee;
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .bar i {
+      display: block;
+      height: 7px;
+      background: #176b75;
+      border-radius: 10px;
+    }
+
+    pre {
+      overflow-x: auto;
+      background: #f6f8fb;
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    footer {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #64758a;
+      padding-bottom: 25px;
+    }
+
+    @media (max-width: 750px) {
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      header { display: block; }
+      header button { margin-top: 16px; }
+      main { padding: 14px; }
+    }
+
+    @media (max-width: 450px) {
+      .metrics { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
+
 <body>
+  <header>
+    <div>
+      <small>G1 MHRD / WORKFORCE INSIGHTS</small>
+      <h1>Management Dashboard</h1>
+      <small>Reported workload · Position description review</small>
+    </div>
+    <button id="refresh">Refresh Shared Reports</button>
+  </header>
 
-    <!-- HUD TOP -->
-    <header class="hud-header">
-        <div>
-            <span class="header-title">G1 MHRD // ADMIN DASHBOARD</span>
+  <main>
+    <div id="status" role="status" aria-live="polite">
+      Loading shared reports…
+    </div>
+
+    <div class="toolbar">
+      <label>
+        From
+        <input type="date" id="from">
+      </label>
+
+      <label>
+        Through
+        <input type="date" id="to">
+      </label>
+
+      <label>
+        Section
+        <select id="section">
+          <option value="">All sections</option>
+        </select>
+      </label>
+
+      <button id="allDates">All Reported Dates</button>
+    </div>
+
+    <nav aria-label="Dashboard views">
+      <button class="active" data-view="overview">
+        Management Overview
+      </button>
+      <button data-view="analytics">
+        Employee Analytics
+      </button>
+      <button data-view="settings">
+        Shared Editing & Task Catalogs
+      </button>
+    </nav>
+
+    <div class="notice">
+      Reports reflect submitted work only. “No reported use” does not
+      mean an employee missed a required task. For each employee and
+      task week, this dashboard uses the latest submitted snapshot
+      containing tasks for that week.
+    </div>
+
+    <section id="overview">
+      <div class="metrics" id="metrics"></div>
+
+      <div class="card">
+        <h2>Employee Workload</h2>
+        <p class="muted">
+          Select an employee to review task usage and position
+          description evidence. Employees without submissions require
+          a separate roster to appear here.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee / PSN</th>
+                <th>Section</th>
+                <th>Hours</th>
+                <th>Task Entries</th>
+                <th>Other Hours</th>
+                <th>Latest Submission</th>
+              </tr>
+            </thead>
+            <tbody id="employees"></tbody>
+          </table>
         </div>
-        <div>
-            <span class="tab-badge">TAB 3: WEEKLY DASHBOARD</span>
+      </div>
+    </section>
+
+    <section id="analytics" class="hidden">
+      <div class="toolbar">
+        <label>
+          Employee
+          <select id="employee"></select>
+        </label>
+      </div>
+
+      <div id="analysis"></div>
+    </section>
+
+    <section id="settings" class="hidden">
+      <div class="card">
+        <h2>Shared Administrator Edits</h2>
+
+        <div class="notice">
+          <strong>Shared editing is not connected.</strong>
+          This dashboard is read-only. No employee changes are saved
+          or transmitted from this page.
         </div>
-    </header>
 
-    <!-- MAIN BODY -->
-    <main class="dashboard-container">
-        <!-- SIDEBAR DIRECTORY -->
-        <aside class="sidebar">
-            <!-- HQ -->
-            <div class="branch-group">
-                <div class="branch-title">HEADQUARTERS (HQ)</div>
-                <button class="nav-btn active" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/hq1.html', '01 - JAROD GROVES')">
-                    <span>01. JAROD GROVES</span>
-                    <span>HQ</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/hq2.html', '02 - TIMOTHY WEBSTER')">
-                    <span>02. TIMOTHY WEBSTER</span>
-                    <span>HQ</span>
-                </button>
-            </div>
+        <p>
+          The existing employee pages save locally and transmit task
+          snapshots. They do not load administrator changes.
+          Editing a report here would not update those pages.
+        </p>
 
-            <!-- SMB -->
-            <div class="branch-group">
-                <div class="branch-title">SMB</div>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/smb4.html', '03 - MIGUEL MATTEI')">
-                    <span>03. MIGUEL MATTEI</span>
-                    <span>SMB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/smb1.html', '04 - MARION KWON')">
-                    <span>04. MARION KWON</span>
-                    <span>SMB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/smb3.html', '05 - ANDREW TONDRE')">
-                    <span>05. ANDREW TONDRE</span>
-                    <span>SMB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/smb2.html', '06 - DENISE SERRANO')">
-                    <span>06. DENISE SERRANO</span>
-                    <span>SMB</span>
-                </button>
-            </div>
+        <p>
+          Shared editing requires each employee page to load its
+          shared record by PSN and save through an authenticated
+          service. That service must enforce administrator permissions
+          and prevent older records from overwriting newer changes.
+        </p>
+      </div>
 
-            <!-- STB -->
-            <div class="branch-group">
-                <div class="branch-title">STB</div>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/stb2.html', '07 - DAVID GARCIA')">
-                    <span>07. DAVID GARCIA</span>
-                    <span>STB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/stb1.html', '08 - OSCAR JIMENEZ')">
-                    <span>08. OSCAR JIMENEZ</span>
-                    <span>STB</span>
-                </button>
-            </div>
+      <div class="card">
+        <h2>Approved Position Description Tasks</h2>
 
-            <!-- HROB -->
-            <div class="branch-group">
-                <div class="branch-title">HROB</div>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/hrob3.html', '09 - KEVIN MOORE')">
-                    <span>09. KEVIN MOORE</span>
-                    <span>HROB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/hrob1.html', '10 - KIMBERLY CHEATHAM')">
-                    <span>10. KIMBERLY CHEATHAM</span>
-                    <span>HROB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/hrob2.html', '11 - CHANDLER VARGAS')">
-                    <span>11. CHANDLER VARGAS</span>
-                    <span>HROB</span>
-                </button>
-            </div>
+        <p>
+          Place a file named <code>employee-catalogs.json</code>
+          beside this dashboard to enable comparisons between
+          approved tasks and reported work.
+        </p>
 
-            <!-- EPSB -->
-            <div class="branch-group">
-                <div class="branch-title">EPSB</div>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/epsb3.html', '12 - TENNILLE WITHERSPOON')">
-                    <span>12. T. WITHERSPOON</span>
-                    <span>EPSB</span>
-                </button>
-                <button class="nav-btn" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/epsb1.html', '13 - NAKITA MILLER')">
-                    <span>13. NAKITA MILLER</span>
-                    <span>EPSB</span>
-                </button>
-                <button class="nav-btn vacant" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/epsb2.html', '14 - VACANT 1')">
-                    <span>14. [VACANT 1]</span>
-                    <span>EPSB</span>
-                </button>
-                <button class="nav-btn vacant" onclick="loadDashboard(this, 'https://mhrdnco.github.io/G1/epsb4.html', '15 - VACANT 2')">
-                    <span>15. [VACANT 2]</span>
-                    <span>EPSB</span>
-                </button>
-            </div>
-        </aside>
+        <p>
+          Replace the example identifiers and task names below with
+          each employee’s actual PSN, position description, and
+          complete approved task list.
+        </p>
 
-        <!-- DASHBOARD DISPLAY VIEWPORT -->
-        <section class="viewport-panel">
-            <div class="viewport-header">
-                <span id="active-target">ACTIVE RECORD: 01 - JAROD GROVES // WEEKLY DASHBOARD</span>
-                <span id="source-url">SOURCE: https://mhrdnco.github.io/G1/hq1.html</span>
-            </div>
-            <!-- Initialized with #tab-3 and active onload listener -->
-            <iframe id="dashboard-frame" class="viewport-frame" src="https://mhrdnco.github.io/G1/hq1.html#tab-3" onload="enforceTab3()"></iframe>
-        </section>
-    </main>
+        <pre>{
+  "employees": {
+    "EMPLOYEE_PSN": {
+      "pd": "POSITION_DESCRIPTION_ID",
+      "tasks": [
+        "Exact approved task name",
+        "Another approved task name"
+      ]
+    }
+  }
+}</pre>
 
-    <script>
-        function loadDashboard(button, url, label) {
-            // Update active button state
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+        <p class="muted">
+          Without an approved catalog, reported hours and Other
+          descriptions remain available, but tasks with no reported
+          use cannot be identified.
+        </p>
+      </div>
 
-            // Force tab-3 hash mapping to target url
-            const targetUrl = url.includes('#') ? url.split('#')[0] + '#tab-3' : url + '#tab-3';
+      <div class="card">
+        <h2>Reporting Limitations</h2>
+        <p>
+          The existing workflow submits cumulative task lists without
+          an explicit reporting-week identifier. This dashboard groups
+          tasks by their actual task dates and selects the latest
+          snapshot for each employee and week.
+        </p>
+        <p>
+          A submission that removes every task from a week cannot
+          communicate that deletion through the current format.
+          Explicit reporting-week identifiers and shared record
+          versions are needed for reliable corrections and deletions.
+        </p>
+      </div>
+    </section>
 
-            // Update iframe target
-            const frame = document.getElementById('dashboard-frame');
-            frame.src = targetUrl;
+    <footer>
+      Minutes and hours describe reported time, not performance ratings.
+      Verify task catalog completeness and reporting coverage before
+      making position description decisions.
+    </footer>
+  </main>
 
-            // Update status headers
-            document.getElementById('active-target').innerText = `ACTIVE RECORD: ${label} // WEEKLY DASHBOARD`;
-            document.getElementById('source-url').innerText = `SOURCE: ${url}`;
+  <script>
+    "use strict";
+
+    let reports = [];
+    let catalogs = {};
+    let skippedItems = 0;
+
+    const $ = id => document.getElementById(id);
+
+    function escapeHTML(value) {
+      const characters = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      };
+
+      return String(value ?? "").replace(
+        /[&<>"']/g,
+        character => characters[character]
+      );
+    }
+
+    function normalize(value) {
+      return String(value ?? "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+    }
+
+    function isOther(task) {
+      return /^other(?:\s*:|$)/i.test(task.trim());
+    }
+
+    function validDate(value) {
+      if (
+        typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value)
+      ) {
+        return false;
+      }
+
+      const date = new Date(value + "T00:00:00Z");
+
+      return (
+        Number.isFinite(date.getTime()) &&
+        date.toISOString().slice(0, 10) === value
+      );
+    }
+
+    function weekStart(value) {
+      const date = new Date(value + "T00:00:00Z");
+      const daysSinceMonday = (date.getUTCDay() + 6) % 7;
+
+      date.setUTCDate(date.getUTCDate() - daysSinceMonday);
+
+      return date.toISOString().slice(0, 10);
+    }
+
+    function hours(minutes) {
+      return (minutes / 60).toFixed(2);
+    }
+
+    function totalMinutes(tasks) {
+      return tasks.reduce((sum, task) => sum + task.time, 0);
+    }
+
+    function metric(label, value, note) {
+      return `
+        <div class="card metric">
+          <span>${escapeHTML(label)}</span>
+          <b>${escapeHTML(value)}</b>
+          <span>${escapeHTML(note)}</span>
+        </div>
+      `;
+    }
+
+    function switchView(view) {
+      for (const name of ["overview", "analytics", "settings"]) {
+        $(name).classList.toggle("hidden", name !== view);
+      }
+
+      document.querySelectorAll("[data-view]").forEach(button => {
+        button.classList.toggle(
+          "active",
+          button.dataset.view === view
+        );
+      });
+    }
+
+    /*
+      Each transmission contains a cumulative snapshot.
+      Keep the newest snapshot per employee and task week.
+      Do not deduplicate individual task rows: repeated work may
+      legitimately have the same date, description, and duration.
+    */
+    function selectLatestSnapshots(rawReports) {
+      const latest = new Map();
+      skippedItems = 0;
+
+      for (const report of rawReports) {
+        // Ignore the legacy metadata placeholder.
+        if (
+          report &&
+          report.employees &&
+          !report.tasks_logged
+        ) {
+          continue;
         }
 
-        function enforceTab3() {
-            try {
-                const frame = document.getElementById('dashboard-frame');
-                const frameDoc = frame.contentDocument || frame.contentWindow.document;
-
-                // Query potential selector elements for "3. Weekly Dashboard" tab 
-                const tabs = frameDoc.querySelectorAll('button, a, .tab, .nav-link, [role="tab"]');
-                tabs.forEach(tab => {
-                    const text = tab.innerText.toLowerCase();
-                    if (text.includes('3.') || text.includes('weekly') || text.includes('dashboard') || text.includes('tab-3')) {
-                        tab.click();
-                    }
-                });
-            } catch (e) {
-                // Safeguard against cross-origin frames; the #tab-3 hash acts as the native selector fallback
-                console.log("Cross-origin security active. Page selection triggered via URL hash target (#tab-3).");
-            }
+        if (
+          !report ||
+          typeof report.psn !== "string" ||
+          !report.psn.trim() ||
+          normalize(report.psn) === "not set" ||
+          !Array.isArray(report.tasks_logged) ||
+          typeof report.timestamp !== "string" ||
+          !Number.isFinite(Date.parse(report.timestamp))
+        ) {
+          skippedItems++;
+          continue;
         }
-    </script>
+
+        const groupedTasks = new Map();
+
+        for (const task of report.tasks_logged) {
+          if (
+            !task ||
+            !validDate(task.date) ||
+            typeof task.task !== "string" ||
+            !task.task.trim() ||
+            !Number.isFinite(task.time) ||
+            task.time <= 0
+          ) {
+            skippedItems++;
+            continue;
+          }
+
+          const week = weekStart(task.date);
+
+          if (!groupedTasks.has(week)) {
+            groupedTasks.set(week, []);
+          }
+
+          groupedTasks.get(week).push(task);
+        }
+
+        for (const [week, tasks] of groupedTasks) {
+          const psn = report.psn.trim();
+          const key = psn + "|" + week;
+          const previous = latest.get(key);
+
+          if (
+            !previous ||
+            Date.parse(report.timestamp) >=
+              Date.parse(previous.timestamp)
+          ) {
+            latest.set(key, {
+              ...report,
+              psn,
+              week,
+              tasks_logged: tasks
+            });
+          }
+        }
+      }
+
+      return [...latest.values()];
+    }
+
+    function getPeople() {
+      const employees = new Map();
+      const from = $("from").value;
+      const through = $("to").value;
+      const section = $("section").value;
+
+      for (const report of reports) {
+        let person = employees.get(report.psn);
+
+        if (!person) {
+          person = {
+            psn: report.psn,
+            name: report.employee_name || report.psn,
+            section: report.section || "Unspecified",
+            timestamp: report.timestamp,
+            tasks: [],
+            weeks: new Set()
+          };
+
+          employees.set(report.psn, person);
+        }
+
+        if (
+          Date.parse(report.timestamp) >=
+          Date.parse(person.timestamp)
+        ) {
+          person.timestamp = report.timestamp;
+          person.name = report.employee_name || person.name;
+          person.section = report.section || person.section;
+        }
+
+        for (const task of report.tasks_logged) {
+          if (
+            (!from || task.date >= from) &&
+            (!through || task.date <= through)
+          ) {
+            person.tasks.push(task);
+            person.weeks.add(report.week);
+          }
+        }
+      }
+
+      return [...employees.values()]
+        .filter(person => !section || person.section === section)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    function render() {
+      const people = getPeople();
+      const selectedEmployee = $("employee").value;
+      const tasks = people.flatMap(person => person.tasks);
+
+      const minutes = totalMinutes(tasks);
+      const otherMinutes = totalMinutes(
+        tasks.filter(task => isOther(task.task))
+      );
+
+      $("metrics").innerHTML =
+        metric(
+          "Employees With Activity",
+          people.filter(person => person.tasks.length > 0).length,
+          "Within selected dates"
+        ) +
+        metric(
+          "Reported Hours",
+          hours(minutes),
+          tasks.length + " task entries"
+        ) +
+        metric(
+          "Other Hours",
+          hours(otherMinutes),
+          "Typed descriptions for review"
+        ) +
+        metric(
+          "Other Share",
+          minutes
+            ? (100 * otherMinutes / minutes).toFixed(1) + "%"
+            : "—",
+          "Share of reported minutes"
+        );
+
+      $("employees").innerHTML = people.map(person => {
+        const otherTasks = person.tasks.filter(
+          task => isOther(task.task)
+        );
+
+        return `
+          <tr>
+            <td>
+              <button data-psn="${escapeHTML(person.psn)}">
+                ${escapeHTML(person.name)}
+              </button>
+              <br>
+              <small>${escapeHTML(person.psn)}</small>
+            </td>
+            <td>${escapeHTML(person.section)}</td>
+            <td>${hours(totalMinutes(person.tasks))}</td>
+            <td>${person.tasks.length}</td>
+            <td>${hours(totalMinutes(otherTasks))}</td>
+            <td>
+              ${escapeHTML(
+                new Date(person.timestamp).toLocaleString()
+              )}
+            </td>
+          </tr>
+        `;
+      }).join("") || `
+        <tr>
+          <td colspan="6">No employee reports available.</td>
+        </tr>
+      `;
+
+      $("employee").innerHTML = people.map(person => `
+        <option value="${escapeHTML(person.psn)}">
+          ${escapeHTML(person.name)} · ${escapeHTML(person.psn)}
+        </option>
+      `).join("");
+
+      if (people.some(person => person.psn === selectedEmployee)) {
+        $("employee").value = selectedEmployee;
+      }
+
+      renderAnalysis();
+    }
+
+    function taskTable(entries, total) {
+      const rows = entries.map(entry => {
+        const share = total ? 100 * entry.minutes / total : 0;
+
+        return `
+          <tr>
+            <td>${escapeHTML(entry.label)}</td>
+            <td>${entry.count}</td>
+            <td>${hours(entry.minutes)}</td>
+            <td>${entry.weeks.size}</td>
+            <td>
+              ${share.toFixed(1)}%
+              <div class="bar">
+                <i style="width:${share}%"></i>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("") || `
+        <tr>
+          <td colspan="5">No entries in this period.</td>
+        </tr>
+      `;
+
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task / Description</th>
+                <th>Entries</th>
+                <th>Hours</th>
+                <th>Weeks Reported</th>
+                <th>Time Share</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function taskList(tasks) {
+      if (!tasks.length) {
+        return "<p>None in this period.</p>";
+      }
+
+      return "<ul>" + tasks.map(task =>
+        `<li>${escapeHTML(task)}</li>`
+      ).join("") + "</ul>";
+    }
+
+    function renderAnalysis() {
+      const person = getPeople().find(
+        item => item.psn === $("employee").value
+      );
+
+      if (!person) {
+        $("analysis").innerHTML =
+          '<div class="card">No employee selected.</div>';
+        return;
+      }
+
+      const catalog = catalogs[person.psn];
+
+      const approvedTasks = Array.isArray(catalog?.tasks)
+        ? [...new Set(
+            catalog.tasks
+              .filter(task =>
+                typeof task === "string" && task.trim()
+              )
+              .map(task => task.trim())
+          )]
+        : null;
+
+      const totals = new Map();
+
+      for (const task of person.tasks) {
+        const key = normalize(task.task);
+
+        if (!totals.has(key)) {
+          totals.set(key, {
+            label: task.task,
+            minutes: 0,
+            count: 0,
+            weeks: new Set()
+          });
+        }
+
+        const entry = totals.get(key);
+        entry.minutes += task.time;
+        entry.count++;
+        entry.weeks.add(weekStart(task.date));
+      }
+
+      const entries = [...totals.values()].sort(
+        (a, b) => b.minutes - a.minutes
+      );
+
+      const minutes = totalMinutes(person.tasks);
+
+      const used = approvedTasks
+        ? approvedTasks.filter(task => totals.has(normalize(task)))
+        : [];
+
+      const unused = approvedTasks
+        ? approvedTasks.filter(task => !totals.has(normalize(task)))
+        : [];
+
+      const other = entries.filter(entry => isOther(entry.label));
+
+      const unmatched = approvedTasks
+        ? entries.filter(entry =>
+            !isOther(entry.label) &&
+            !approvedTasks.some(task =>
+              normalize(task) === normalize(entry.label)
+            )
+          )
+        : [];
+
+      $("analysis").innerHTML = `
+        <div class="card">
+          <h2>
+            ${escapeHTML(person.name)}
+            <small>/ ${escapeHTML(person.psn)}</small>
+          </h2>
+          <p>
+            ${escapeHTML(person.section)}
+            · ${person.weeks.size} weeks with reported activity
+            · ${hours(minutes)} hours
+            ${catalog?.pd
+              ? " · PD " + escapeHTML(catalog.pd)
+              : ""}
+          </p>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h2>
+              Approved Tasks With Reported Use
+              (${approvedTasks ? used.length : "unknown"})
+            </h2>
+            ${approvedTasks
+              ? taskList(used)
+              : "<p>An approved task catalog is needed for this employee.</p>"}
+          </div>
+
+          <div class="card">
+            <h2>
+              Approved Tasks With No Reported Use
+              (${approvedTasks ? unused.length : "unknown"})
+            </h2>
+            ${approvedTasks
+              ? taskList(unused)
+              : "<p>Unused tasks cannot be determined from submissions alone.</p>"}
+            <p class="muted">
+              This describes reporting coverage, not missed assignments.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Other: Typed Work Descriptions</h2>
+          <p class="muted">
+            Compare recurring work, reported hours, and weeks represented
+            when considering a position description change.
+          </p>
+          ${taskTable(other, minutes)}
+        </div>
+
+        ${approvedTasks ? `
+          <div class="card">
+            <h2>Reported Tasks Outside the Approved Catalog</h2>
+            ${taskTable(unmatched, minutes)}
+          </div>
+        ` : ""}
+
+        <div class="card">
+          <h2>All Reported Task Activity</h2>
+          ${taskTable(entries, minutes)}
+        </div>
+
+        <div class="card">
+          <h2>Management Review Prompts</h2>
+          <ul>
+            <li>
+              Review recurring Other descriptions and their reported
+              hours for possible inclusion in the position description.
+            </li>
+            <li>
+              Confirm whether tasks with no reported use are seasonal,
+              assigned elsewhere, or missing from reporting.
+            </li>
+            <li>
+              Validate reporting completeness and the approved catalog
+              before documenting a proposed change.
+            </li>
+          </ul>
+        </div>
+      `;
+    }
+
+    async function loadReports() {
+      $("refresh").disabled = true;
+      $("status").textContent = "Loading shared reports…";
+
+      try {
+        const response = await fetch(
+          new URL("data.json", location.href),
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "data.json returned HTTP " + response.status
+          );
+        }
+
+        const raw = await response.json();
+
+        if (!Array.isArray(raw)) {
+          throw new Error(
+            "data.json must contain an array of submissions."
+          );
+        }
+
+        reports = selectLatestSnapshots(raw);
+
+        let catalogMessage = "";
+
+        try {
+          const catalogResponse = await fetch(
+            new URL("employee-catalogs.json", location.href),
+            { cache: "no-store" }
+          );
+
+          if (!catalogResponse.ok) {
+            throw new Error("Task catalog unavailable.");
+          }
+
+          const catalogData = await catalogResponse.json();
+
+          if (
+            !catalogData.employees ||
+            typeof catalogData.employees !== "object" ||
+            Array.isArray(catalogData.employees)
+          ) {
+            throw new Error("Invalid task catalog.");
+          }
+
+          catalogs = catalogData.employees;
+        } catch (error) {
+          catalogs = {};
+          catalogMessage =
+            " Approved task catalogs are unavailable; " +
+            "unused-task comparisons are disabled.";
+        }
+
+        const previousSection = $("section").value;
+
+        const sections = [...new Set(
+          reports.map(report => report.section || "Unspecified")
+        )].sort();
+
+        $("section").innerHTML =
+          '<option value="">All sections</option>' +
+          sections.map(section => `
+            <option value="${escapeHTML(section)}">
+              ${escapeHTML(section)}
+            </option>
+          `).join("");
+
+        $("section").value = sections.includes(previousSection)
+          ? previousSection
+          : "";
+
+        $("status").textContent =
+          "Shared reports refreshed " +
+          new Date().toLocaleString() +
+          ". " + skippedItems +
+          " invalid records or tasks skipped." +
+          catalogMessage;
+
+        render();
+      } catch (error) {
+        $("status").textContent =
+          "Unable to refresh shared reports: " +
+          error.message +
+          " Previously loaded results, if any, remain visible. " +
+          "Host this file beside data.json on your website; " +
+          "opening the HTML directly from your computer may block loading.";
+      } finally {
+        $("refresh").disabled = false;
+      }
+    }
+
+    document.querySelectorAll("[data-view]").forEach(button => {
+      button.addEventListener("click", () => {
+        switchView(button.dataset.view);
+      });
+    });
+
+    $("refresh").addEventListener("click", loadReports);
+
+    for (const id of ["from", "to", "section"]) {
+      $(id).addEventListener("change", () => {
+        if (
+          $("from").value &&
+          $("to").value &&
+          $("from").value > $("to").value
+        ) {
+          $("status").textContent =
+            "The start date must be on or before the end date. " +
+            "Displayed results have not changed.";
+          return;
+        }
+
+        render();
+      });
+    }
+
+    $("employee").addEventListener("change", renderAnalysis);
+
+    $("employees").addEventListener("click", event => {
+      const button = event.target.closest("[data-psn]");
+
+      if (button) {
+        $("employee").value = button.dataset.psn;
+        renderAnalysis();
+        switchView("analytics");
+      }
+    });
+
+    $("allDates").addEventListener("click", () => {
+      $("from").value = "";
+      $("to").value = "";
+      render();
+    });
+
+    loadReports();
+  </script>
 </body>
 </html>
