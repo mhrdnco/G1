@@ -163,7 +163,7 @@
             <div class="flex-child">
                 <div class="tracker-header-wrap">
                     <h3 style="margin: 0;">Logged Tasks (Current Week)</h3>
-                    <button id="transmitBtn" class="btn-transmit" onclick="transmitToGitHubAction()">🚀 TRANSMIT TO HQ</button>
+                    <button id="transmitBtn" class="btn-transmit" onclick="transmitToCloudflare()">🚀 TRANSMIT TO HQ</button>
                 </div>
                 <table id="taskTable">
                     <thead>
@@ -702,31 +702,11 @@
             } 
         }
 
-        /**
-         * OPTION B ARCHITECTURE: SECURE REPOSITORY DISPATCH
-         * Sends user metadata and weekly task execution array to the central GitHub Action workflow.
-         */
-        async function transmitToGitHubAction() {
-            // Pre-flight UI Validations
-            if (!empInfo.name || empInfo.name.trim() === "" || empInfo.name === "Not Set") {
-                alert("Transmission Blocked: Employee Name must be configured in the ADMIN tab before transmitting to HQ.");
-                return;
-            }
-
+        // CLOUDFLARE D1 TRANSMISSION
+        async function transmitToCloudflare() {
             if (!tasks || tasks.length === 0) {
                 alert("Transmission Blocked: No executed tasks have been logged for transmission.");
                 return;
-            }
-
-            // Zero-Trust Session-Scoped Secret Prompting
-            let authToken = sessionStorage.getItem('gh_dispatch_token');
-            if (!authToken) {
-                authToken = prompt("Enter your GitHub Personal Access Token (PAT) for HQ Dispatch:\n(Token is stored in active browser session memory only)");
-                if (!authToken || authToken.trim() === "") {
-                    alert("Transmission Aborted: An authorized GitHub Personal Access Token is required.");
-                    return;
-                }
-                sessionStorage.setItem('gh_dispatch_token', authToken.trim());
             }
 
             const transmitBtn = document.getElementById('transmitBtn');
@@ -734,49 +714,45 @@
             transmitBtn.disabled = true;
             transmitBtn.innerHTML = "⏳ TRANSMITTING...";
 
-            const targetEndpoint = "https://api.github.com/repos/mhrdnco/G1/dispatches";
+            const targetEndpoint = "https://g1-tracker-api.j-enrique-alvarado.workers.dev/api/reports";
             const todayStr = new Date().toISOString().split('T')[0];
 
             const payload = {
-                event_type: "submit_task_data",
-                client_payload: {
-                    employee_name: empInfo.name,
-                    section: empInfo.section || "Not Set",
-                    uic_para_lin: empInfo.uicParaLin || "Not Set",
-                    psn: empInfo.psn || "Not Set",
-                    date: todayStr,
-                    tasks: tasks
-                }
+                pd: "M1508420FR",
+                report_date: todayStr,
+                tasks: tasks
             };
 
             try {
                 const response = await fetch(targetEndpoint, {
-                    method: 'POST',
+                    method: "POST",
                     headers: {
-                        'Accept': 'application/vnd.github+json',
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionStorage.getItem('gh_dispatch_token')}`
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify(payload)
                 });
 
-                if (response.status === 204 || response.ok) {
-                    alert(`✅ Transmission Successful!\n\nTask data for ${empInfo.name} has been dispatched to HQ repository workflow.`);
-                } else if (response.status === 401 || response.status === 403) {
-                    sessionStorage.removeItem('gh_dispatch_token');
-                    alert(`❌ Authorization Failure (HTTP ${response.status}):\nInvalid or expired GitHub Personal Access Token. Session token cleared.`);
+                const result = await response.json().catch(() => ({}));
+
+                if (response.ok && result.success) {
+                    alert(`✅ Transmission Successful!
+
+Task data for ${result.employee || "Miguel Mattei"} was saved to Cloudflare D1.
+Report ID: ${result.report_id ?? "N/A"}`);
                 } else {
-                    const errResponse = await response.json().catch(() => ({}));
-                    alert(`❌ Dispatch Failed (HTTP ${response.status}):\n${errResponse.message || response.statusText}`);
+                    alert(`❌ Transmission Failed (HTTP ${response.status}):
+${result.error || "Cloudflare rejected the report."}`);
                 }
             } catch (networkError) {
-                console.error("Dispatch Network Exception:", networkError);
-                alert(`⚠️ Network Error: Unable to reach GitHub API endpoint.\n${networkError.message}`);
+                console.error("Cloudflare transmission error:", networkError);
+                alert(`⚠️ Network Error: Unable to reach the G1 Cloudflare API.
+${networkError.message}`);
             } finally {
                 transmitBtn.disabled = false;
                 transmitBtn.innerHTML = originalBtnText;
             }
         }
+
     </script>
 </body>
 </html>
