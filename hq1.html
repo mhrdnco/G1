@@ -348,7 +348,7 @@
         let tasks = [];
         let battleRhythm = { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] };
         let history = [];
-        let empInfo = { name: "", section: "", uicParaLin: "", psn: "" };
+        let empInfo = { name: "Jarrod Groves", section: "HQ", uicParaLin: "", psn: "" };
         let pieChart = null;
 
         window.onload = function() {
@@ -604,7 +604,21 @@
                     history = JSON.parse(savedHist); 
                     renderHistory(); 
                 } 
-                if(savedEmp) empInfo = JSON.parse(savedEmp);
+                if(savedEmp) {
+                    empInfo = JSON.parse(savedEmp);
+
+                    // Migrate the old misspelled saved name for this employee page.
+                    if ((empInfo.name || "").trim().toLowerCase() === "jarod groves") {
+                        empInfo.name = "Jarrod Groves";
+                        localStorage.setItem('hr_tracker_emp_m1608429fr', JSON.stringify(empInfo));
+                    }
+
+                    // This page belongs to Jarrod Groves. Restore the correct name if blank.
+                    if (!empInfo.name || !empInfo.name.trim()) {
+                        empInfo.name = "Jarrod Groves";
+                        localStorage.setItem('hr_tracker_emp_m1608429fr', JSON.stringify(empInfo));
+                    }
+                }
             } catch (e) {
                 console.error("Local data parsing exception:", e);
             }
@@ -632,7 +646,11 @@
         }
 
         function updateAdminData() { 
-            empInfo.name = document.getElementById('empName').value.trim(); 
+            empInfo.name = document.getElementById('empName').value.trim();
+            if (empInfo.name.toLowerCase() === "jarod groves") {
+                empInfo.name = "Jarrod Groves";
+                document.getElementById('empName').value = empInfo.name;
+            }
             if(document.getElementById('empSection')) empInfo.section = document.getElementById('empSection').value; 
             if(document.getElementById('empUicParaLin')) empInfo.uicParaLin = document.getElementById('empUicParaLin').value.trim(); 
             if(document.getElementById('empPsn')) empInfo.psn = document.getElementById('empPsn').value; 
@@ -688,7 +706,7 @@
 
         function clearAdminInfo() { 
             if(confirm("Are you sure you want to clear admin configuration settings?")) { 
-                empInfo = { name: "", section: "", uicParaLin: "", psn: "" }; 
+                empInfo = { name: "Jarrod Groves", section: "HQ", uicParaLin: "", psn: "" }; 
                 autoSave(); 
                 populateAdminFields(); 
                 refreshHeaders(); 
