@@ -18,7 +18,7 @@ jobs:
           ref: main
           persist-credentials: true
 
-      - name: Append Task Data to data.json
+      - name: Validate and Append Employee Report
         uses: actions/github-script@v7
         with:
           script: |
@@ -26,39 +26,116 @@ jobs:
             const dbPath = 'data.json';
             const payload = context.payload.client_payload;
 
-            // Validate the submission before modifying existing data.
-            if (!payload || typeof payload !== 'object') {
+            function cleanText(value) {
+              return typeof value === 'string'
+                ? value.trim().replace(/\s+/g, ' ')
+                : '';
+            }
+
+            function validDate(value) {
+              if (
+                typeof value !== 'string' ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(value)
+              ) {
+                return false;
+              }
+
+              const date = new Date(value + 'T00:00:00Z');
+
+              return (
+                Number.isFinite(date.getTime()) &&
+                date.toISOString().slice(0, 10) === value
+              );
+            }
+
+            // Require employee name and section.
+            if (
+              !payload ||
+              typeof payload !== 'object' ||
+              Array.isArray(payload)
+            ) {
               throw new Error('Missing submission data.');
             }
 
-            for (const field of ['employee_name', 'psn', 'date']) {
-              if (
-                typeof payload[field] !== 'string' ||
-                !payload[field].trim() ||
-                payload[field].trim() === 'Not Set'
-              ) {
-                throw new Error(`Missing or invalid field: ${field}`);
-              }
+            const employeeName = cleanText(payload.employee_name);
+            const section = cleanText(payload.section).toUpperCase();
+
+            if (
+              !employeeName ||
+              employeeName.toLowerCase() === 'not set'
+            ) {
+              throw new Error('Employee name is required.');
             }
 
-            if (!Array.isArray(payload.tasks) || payload.tasks.length === 0) {
-              throw new Error('The submission must contain tasks.');
+            const allowedSections = [
+              'HQ',
+              'SMB',
+              'STB',
+              'HROB',
+              'EPSB'
+            ];
+
+            if (!allowedSections.includes(section)) {
+              throw new Error(
+                'Section must be HQ, SMB, STB, HROB, or EPSB.'
+              );
             }
 
-            for (const task of payload.tasks) {
+            if (!validDate(payload.date)) {
+              throw new Error(
+                'Report date must be a valid YYYY-MM-DD date.'
+              );
+            }
+
+            if (
+              !Array.isArray(payload.tasks) ||
+              payload.tasks.length === 0
+            ) {
+              throw new Error(
+                'The submission must contain at least one task.'
+              );
+            }
+
+            // Validate tasks and derive the weekday from the date.
+            const tasks = payload.tasks.map((task, index) => {
               if (
                 !task ||
-                typeof task.date !== 'string' ||
-                typeof task.day !== 'string' ||
-                typeof task.task !== 'string' ||
-                !task.task.trim() ||
-                !Number.isInteger(task.time) ||
+                typeof task !== 'object' ||
+                Array.isArray(task) ||
+                !validDate(task.date) ||
+                !cleanText(task.task) ||
+                !Number.isSafeInteger(task.time) ||
                 task.time <= 0
               ) {
-                throw new Error('A submitted task contains invalid data.');
+                throw new Error(
+                  `Task ${index + 1} contains invalid data.`
+                );
               }
-            }
 
+              const description = cleanText(task.task);
+
+              if (/^other\s*:?\s*$/i.test(description)) {
+                throw new Error(
+                  `Task ${index + 1}: OTHER needs a typed description.`
+                );
+              }
+
+              const day = new Date(
+                task.date + 'T00:00:00Z'
+              ).toLocaleDateString('en-US', {
+                weekday: 'long',
+                timeZone: 'UTC'
+              });
+
+              return {
+                date: task.date,
+                day,
+                task: description,
+                time: task.time
+              };
+            });
+
+            // Preserve existing data. Never reset an unreadable file.
             let database = [];
 
             if (fs.existsSync(dbPath)) {
@@ -75,26 +152,41 @@ jobs:
                   parsed === null ||
                   typeof parsed !== 'object'
                 ) {
-                  throw new Error('Expected an array or object.');
+                  throw new Error(
+                    'Expected an array or object.'
+                  );
                 }
 
-                database = Array.isArray(parsed) ? parsed : [parsed];
-              } catch (e) {
+                database = Array.isArray(parsed)
+                  ? parsed
+                  : [parsed];
+              } catch (error) {
                 throw new Error(
-                  `Cannot read data.json; existing data was not overwritten. ${e.message}`
+                  'Cannot read data.json; existing data was not ' +
+                  'overwritten. ' + error.message
                 );
               }
             }
 
             const newEntry = {
               timestamp: new Date().toISOString(),
-              employee_name: payload.employee_name.trim(),
-              section: payload.section,
-              uic_para_lin: payload.uic_para_lin,
-              psn: payload.psn.trim(),
+              employee_name: employeeName,
+              section,
               report_date: payload.date,
-              tasks_logged: payload.tasks
+              tasks_logged: tasks
             };
+
+            // Optional metadata. Neither field identifies the employee.
+            const psn = cleanText(payload.psn);
+            const uic = cleanText(payload.uic_para_lin);
+
+            if (psn && psn.toLowerCase() !== 'not set') {
+              newEntry.psn = psn;
+            }
+
+            if (uic && uic.toLowerCase() !== 'not set') {
+              newEntry.uic_para_lin = uic;
+            }
 
             database.push(newEntry);
 
@@ -104,12 +196,13 @@ jobs:
               'utf8'
             );
 
-            console.log('Successfully appended submission.');
+            console.log('Employee report appended successfully.');
 
       - name: Commit and Push
         shell: bash
         run: |
           set -euo pipefail
+
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data.json
@@ -119,5 +212,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "update: append task tracker record to data.json"
+          git commit -m "update: append employee task report"
           git push origin HEAD:main
