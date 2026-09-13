@@ -10,16 +10,13 @@ permissions:
 jobs:
   append-data:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
 
       - name: Append Task Data to data.json
         uses: actions/github-script@v7
@@ -27,40 +24,100 @@ jobs:
           script: |
             const fs = require('fs');
             const dbPath = 'data.json';
-            
+            const payload = context.payload.client_payload;
+
+            // Validate the submission before modifying existing data.
+            if (!payload || typeof payload !== 'object') {
+              throw new Error('Missing submission data.');
+            }
+
+            for (const field of ['employee_name', 'psn', 'date']) {
+              if (
+                typeof payload[field] !== 'string' ||
+                !payload[field].trim() ||
+                payload[field].trim() === 'Not Set'
+              ) {
+                throw new Error(`Missing or invalid field: ${field}`);
+              }
+            }
+
+            if (!Array.isArray(payload.tasks) || payload.tasks.length === 0) {
+              throw new Error('The submission must contain tasks.');
+            }
+
+            for (const task of payload.tasks) {
+              if (
+                !task ||
+                typeof task.date !== 'string' ||
+                typeof task.day !== 'string' ||
+                typeof task.task !== 'string' ||
+                !task.task.trim() ||
+                !Number.isInteger(task.time) ||
+                task.time <= 0
+              ) {
+                throw new Error('A submitted task contains invalid data.');
+              }
+            }
+
             let database = [];
+
             if (fs.existsSync(dbPath)) {
               try {
                 const raw = fs.readFileSync(dbPath, 'utf8').trim();
-                database = raw ? JSON.parse(raw) : [];
-                if (!Array.isArray(database)) {
-                  database = [database];
+
+                if (!raw) {
+                  throw new Error('The existing file is empty.');
                 }
+
+                const parsed = JSON.parse(raw);
+
+                if (
+                  parsed === null ||
+                  typeof parsed !== 'object'
+                ) {
+                  throw new Error('Expected an array or object.');
+                }
+
+                database = Array.isArray(parsed) ? parsed : [parsed];
               } catch (e) {
-                console.log("Error reading data.json, initializing fresh array.");
+                throw new Error(
+                  `Cannot read data.json; existing data was not overwritten. ${e.message}`
+                );
               }
             }
-            
-            const payload = context.payload.client_payload;
-            
+
             const newEntry = {
               timestamp: new Date().toISOString(),
-              employee_name: payload.name,
+              employee_name: payload.employee_name.trim(),
               section: payload.section,
-              uic_para_lin: payload.uicParaLin,
-              psn: payload.psn,
+              uic_para_lin: payload.uic_para_lin,
+              psn: payload.psn.trim(),
               report_date: payload.date,
               tasks_logged: payload.tasks
             };
-            
+
             database.push(newEntry);
-            fs.writeFileSync(dbPath, JSON.stringify(database, null, 2), 'utf8');
-            console.log(`Successfully appended record for: ${payload.name}`);
+
+            fs.writeFileSync(
+              dbPath,
+              JSON.stringify(database, null, 2) + '\n',
+              'utf8'
+            );
+
+            console.log('Successfully appended submission.');
 
       - name: Commit and Push
+        shell: bash
         run: |
+          set -euo pipefail
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data.json
-          git commit -m "update: append task tracker record to data.json [skip ci]" || echo "No changes to commit"
-          git push origin main
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "update: append task tracker record to data.json"
+          git push origin HEAD:main
