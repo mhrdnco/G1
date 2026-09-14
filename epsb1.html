@@ -134,7 +134,7 @@
             <div class="flex-child">
                 <div class="tracker-header-wrap">
                     <h3 style="margin: 0;">Logged Tasks (Current Week)</h3>
-                    <button class="btn-transmit" onclick="downloadWeeklyHTML()">🚀 TRANSMIT TO HQ</button>
+                    <button id="transmitBtn" class="btn-transmit" onclick="transmitToCloudflare()">🚀 TRANSMIT TO HQ</button>
                 </div>
                 <table id="taskTable"><thead><tr><th>Date</th><th>Day</th><th>Task</th><th>Minutes</th><th>Action</th></tr></thead><tbody></tbody></table>
             </div>
@@ -453,21 +453,50 @@
         function clearHistory() { if(confirm("Are you sure?")) { history = []; autoSave(); renderHistory(); alert("Cleared."); } }
         function clearAdminInfo() { if(confirm("Are you sure?")) { empInfo = { name: "", section: "", uicParaLin: "", psn: "" }; autoSave(); populateAdminFields(); refreshHeaders(); alert("Cleared."); } }
         
-        function downloadWeeklyHTML() { 
-            if (tasks.length === 0) { alert("No tasks to export."); return; } 
-            let htmlContent = `<div style="font-family: 'Segoe UI', Arial, sans-serif; color: #333;"><h3 style="color: #003366; margin-bottom: 5px;">Task Tracker Update</h3><p style="margin-top: 0;"><b>Employee:</b> ${empInfo.name || "Not Set"} <br><b>Section:</b> ${empInfo.section || "Not Set"} <br><b>Date:</b> ${new Date().toLocaleDateString()}</p><table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 600px; font-size: 14px;"><thead><tr style="background-color: #003366; color: white; text-align: left;"><th>Date</th><th>Day</th><th>Task</th><th>Minutes</th></tr></thead><tbody>`; 
-            let totalMins = 0; 
-            tasks.forEach(t => { htmlContent += `<tr><td>${t.date}</td><td>${t.day}</td><td>${t.task}</td><td>${t.time}</td></tr>`; totalMins += t.time; }); 
-            htmlContent += `</tbody><tfoot><tr style="background-color: #e6f2ff; font-weight: bold;"><td colspan="3" style="text-align: right; padding-right: 10px;">TOTAL TIME LOGGED:</td><td>${totalMins} mins (${(totalMins/60).toFixed(2)} hrs)</td></tr></tfoot></table></div>`; 
-            const blob = new Blob([htmlContent], { type: 'text/plain' }); 
-            const a = document.createElement('a'); 
-            const safeName = (empInfo.name || "Employee").replace(/\s+/g, '_'); 
-            const fileDate = new Date().toISOString().split('T')[0]; 
-            a.href = URL.createObjectURL(blob); 
-            a.download = `Weekly_Export_${safeName}_${fileDate}.txt`; 
-            document.body.appendChild(a); 
-            a.click(); 
-            document.body.removeChild(a); 
+        async function transmitToCloudflare() {
+            if (!tasks || tasks.length === 0) {
+                alert("Transmission Blocked: No executed tasks have been logged for transmission.");
+                return;
+            }
+
+            const transmitBtn = document.getElementById('transmitBtn');
+            const originalBtnText = transmitBtn.innerHTML;
+            transmitBtn.disabled = true;
+            transmitBtn.innerHTML = "⏳ TRANSMITTING...";
+
+            const targetEndpoint = "https://g1-tracker-api.j-enrique-alvarado.workers.dev/api/reports";
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const payload = {
+                employee_key: "epsb1",
+                pd: "M1581624FR",
+                report_date: todayStr,
+                tasks: tasks
+            };
+
+            try {
+                const response = await fetch(targetEndpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json().catch(() => ({}));
+
+                if (response.ok && result.success) {
+                    alert(`✅ Transmission Successful!\n\nTask data for ${result.employee || "Nakita Miller"} was saved to Cloudflare D1.\nReport ID: ${result.report_id ?? "N/A"}`);
+                } else {
+                    alert(`❌ Transmission Failed (HTTP ${response.status}):\n${result.error || "Cloudflare rejected the report."}`);
+                }
+            } catch (networkError) {
+                console.error("Cloudflare transmission error:", networkError);
+                alert(`⚠️ Network Error: Unable to reach the G1 Cloudflare API.\n${networkError.message}`);
+            } finally {
+                transmitBtn.disabled = false;
+                transmitBtn.innerHTML = originalBtnText;
+            }
         }
     </script>
 </body>
