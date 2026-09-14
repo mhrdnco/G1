@@ -349,7 +349,7 @@
         <h2>Employee Workload</h2>
 
         <p class="muted">
-          Reports are grouped by PD number. The latest submitted name is displayed. Select a position
+          Reports are grouped by employee identity. The PD number is retained for reference. Select an employee
           to review task activity and position description evidence.
         </p>
 
@@ -439,11 +439,11 @@
     <!-- SETUP -->
     <section id="setup" class="hidden">
       <div class="card">
-        <h2>PD Number Matching</h2>
-        <p>Reports and approved tasks are matched by <strong>pd</strong>, the PD number shown in parentheses on the employee page. Names are display information; correcting a name does not split the position history.</p>
-        <p>The latest saved report supplies the employee name management sees. Employees must submit or save shared changes and management must refresh after the updated data is published. Typing a name alone does not publish it.</p>
-        <p>Reports without a PD number are excluded and counted in the loading status. Add verified PD numbers to historical records before using their totals.</p>
-        <p>Each PD represents one combined history. Pages sharing a PD are combined, including their weekly snapshot replacement behavior.</p>
+        <h2>Employee Identity Matching</h2>
+        <p>Cloudflare reports are matched by <strong>employee_key</strong>. The PD number remains reference information and may legitimately be shared by more than one employee.</p>
+        <p>The latest submitted report supplies the employee name management sees. Management must refresh after updated data is transmitted.</p>
+        <p>Reports without a valid employee identity, PD number, or section are excluded from totals.</p>
+        <p>Employees who share a PD remain separate when they have different employee keys, such as Marion Kwon (smb1) and Andrew Tondre (smb3).</p>
       </div>
       <div class="card">
         <h2>Approved Task Catalog</h2>
@@ -643,8 +643,12 @@
         !!normalize(section) && normalize(section) !== "not set";
     }
 
-    function employeeKey(pd) {
-      return String(pd ?? "").trim().toUpperCase();
+    function employeeKey(value) {
+      return String(value ?? "").trim();
+    }
+
+    function reportIdentity(record) {
+      return employeeKey(record?.employee_key || record?.pd);
     }
 
     function displayName(name) {
@@ -753,10 +757,7 @@
           return;
         }
 
-        const key = employeeKey(
-          record.pd,
-          record.section
-        );
+        const key = reportIdentity(record);
 
         latestEmployeeRecord.set(key, index);
 
@@ -789,10 +790,7 @@
           return true;
         }
 
-        const key = employeeKey(
-          record.pd,
-          record.section
-        );
+        const key = reportIdentity(record);
 
         return (
           !fullStateEmployees.has(key) ||
@@ -836,10 +834,7 @@
           continue;
         }
 
-        const identity = employeeKey(
-          report.pd,
-          report.section
-        );
+        const identity = reportIdentity(report);
 
         const groupedTasks = new Map();
 
@@ -876,7 +871,8 @@
           latest.set(
             JSON.stringify([identity, "empty-state"]),
             {
-              pd: employeeKey(report.pd),
+              pd: String(report.pd ?? "").trim().toUpperCase(),
+              employee_key: reportIdentity(report),
               employee_name: displayName(report.employee_name),
               section: report.section.trim(),
               timestamp: report.timestamp,
@@ -901,7 +897,8 @@
               Date.parse(previous.timestamp)
           ) {
             latest.set(key, {
-              pd: employeeKey(report.pd),
+              pd: String(report.pd ?? "").trim().toUpperCase(),
+              employee_key: reportIdentity(report),
               employee_name: displayName(report.employee_name),
               section: report.section.trim(),
               timestamp: report.timestamp,
@@ -997,13 +994,13 @@
     function getPeople() {
       const employees = new Map();
 
-      function addPerson(name, section, pd) {
-        const key = employeeKey(pd);
+      function addPerson(name, section, pd, identity) {
+        const key = employeeKey(identity || pd);
 
         if (!employees.has(key)) {
           employees.set(key, {
             key,
-            pd: key,
+            pd: String(pd ?? "").trim().toUpperCase(),
             name,
             section,
             timestamp: null,
@@ -1027,7 +1024,8 @@
         const person = addPerson(
           report.employee_name,
           report.section,
-          report.pd
+          report.pd,
+          report.employee_key || report.identity
         );
 
         if (
@@ -1556,6 +1554,7 @@
 
           return {
             pd: row.pd,
+            employee_key: row.employee_key,
             employee_name: row.employee_name,
             section: row.section,
             page: row.page,
