@@ -702,11 +702,6 @@
         }
 
         async function transmitToCloudflare() {
-            if (!empInfo.name || empInfo.name.trim() === "" || empInfo.name === "Not Set") {
-                alert("Transmission Blocked: Employee Name must be configured in the ADMIN tab before transmitting to HQ.");
-                return;
-            }
-
             if (!tasks || tasks.length === 0) {
                 alert("Transmission Blocked: No executed tasks have been logged for transmission.");
                 return;
