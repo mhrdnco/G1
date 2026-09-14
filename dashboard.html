@@ -81,6 +81,17 @@
       border-color: var(--teal);
     }
 
+    /* Keep employee-name buttons a consistent size */
+    #employeeRows button[data-employee] {
+      width: 240px;
+      min-height: 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: normal;
+    }
+
     button:disabled {
       opacity: 0.6;
       cursor: wait;
@@ -525,77 +536,92 @@
       {
         name: "Jarrod Groves",
         section: "HQ",
+        employee_key: "hq1",
         page: "hq1.html"
       },
       {
         name: "Timothy Webster",
         section: "HQ",
+        employee_key: "hq2",
         page: "hq2.html"
       },
       {
         name: "Miguel Mattei",
         section: "SMB",
+        employee_key: "smb4",
         page: "smb4.html"
       },
       {
         name: "Marion Kwon",
         section: "SMB",
+        employee_key: "smb1",
         page: "smb1.html"
       },
       {
         name: "Andrew Tondre",
         section: "SMB",
+        employee_key: "smb3",
         page: "smb3.html"
       },
       {
         name: "Denise Serrano",
         section: "SMB",
+        employee_key: "smb2",
         page: "smb2.html"
       },
       {
         name: "David Garcia",
         section: "STB",
+        employee_key: "stb2",
         page: "stb2.html"
       },
       {
         name: "Oscar Jimenez",
         section: "STB",
+        employee_key: "stb1",
         page: "stb1.html"
       },
       {
         name: "Kevin Moore",
         section: "HROB",
+        employee_key: "hrob3",
         page: "hrob3.html"
       },
       {
         name: "Kimberly Cheatham",
         section: "HROB",
+        employee_key: "hrob1",
         page: "hrob1.html"
       },
       {
         name: "Chandler Vargas",
         section: "HROB",
+        employee_key: "hrob2",
         page: "hrob2.html"
       },
       {
         name: "Tennille Witherspoon",
         section: "EPSB",
+        employee_key: "epsb3",
         page: "epsb3.html"
       },
       {
         name: "Nakita Miller",
         section: "EPSB",
+        employee_key: "epsb1",
         page: "epsb1.html"
       },
       {
         name: "Vacant 1",
         section: "EPSB",
+        employee_key: "epsb2",
         page: "epsb2.html",
         vacant: true
       },
       {
         name: "Vacant 2",
         section: "EPSB",
+        employee_key: "epsb4",
         page: "epsb4.html",
         vacant: true
       }
@@ -648,7 +674,7 @@
     }
 
     function reportIdentity(record) {
-      return employeeKey(record?.employee_key || record?.pd);
+      return employeeKey(record?.employee_key);
     }
 
     function displayName(name) {
@@ -752,7 +778,8 @@
           !validIdentity(
             record.pd,
             record.section
-          )
+          ) ||
+          !reportIdentity(record)
         ) {
           return;
         }
@@ -785,7 +812,8 @@
           !validIdentity(
             record.pd,
             record.section
-          )
+          ) ||
+          !reportIdentity(record)
         ) {
           return true;
         }
@@ -817,7 +845,8 @@
           !validIdentity(
             report.pd,
             report.section
-          )
+          ) ||
+          !reportIdentity(report)
         ) {
           missingIdentity++;
           continue;
@@ -949,14 +978,22 @@
           continue;
         }
 
-        const key = employeeKey(
-          entry.pd,
-          entry.section
-        );
+        const page = typeof entry.page === "string"
+          ? entry.page.trim()
+          : "";
+
+        const key = page
+          ? employeeKey(page.replace(/\.html$/i, ""))
+          : "";
+
+        if (!key) {
+          skipped++;
+          continue;
+        }
 
         if (result.has(key)) {
           throw new Error(
-            "Duplicate PD number in the task catalog."
+            "Duplicate employee key in the task catalog."
           );
         }
 
@@ -975,11 +1012,12 @@
         }
 
         result.set(key, {
+          employee_key: key,
           employee_name: displayName(entry.employee_name),
-          page: typeof entry.page === "string" ? entry.page : "",
+          page,
           section: entry.section.trim(),
           pd: typeof entry.pd === "string"
-            ? entry.pd
+            ? entry.pd.trim().toUpperCase()
             : "",
           tasks: [...taskMap.values()]
         });
@@ -995,7 +1033,11 @@
       const employees = new Map();
 
       function addPerson(name, section, pd, identity) {
-        const key = employeeKey(identity || pd);
+        const key = employeeKey(identity);
+
+        if (!key) {
+          return null;
+        }
 
         if (!employees.has(key)) {
           employees.set(key, {
@@ -1016,7 +1058,8 @@
         addPerson(
           catalog.employee_name,
           catalog.section,
-          catalog.pd
+          catalog.pd,
+          catalog.employee_key
         );
       }
 
@@ -1028,6 +1071,10 @@
           report.employee_key || report.identity
         );
 
+        if (!person) {
+          continue;
+        }
+
         if (
           !person.timestamp ||
           Date.parse(report.timestamp) >=
@@ -1036,6 +1083,7 @@
           person.timestamp = report.timestamp;
           person.name = report.employee_name;
           person.section = report.section;
+          person.pd = String(report.pd ?? "").trim().toUpperCase();
         }
 
         for (const task of report.tasks_logged) {
@@ -1612,7 +1660,7 @@
         $("status").textContent =
           "Shared reports refreshed " +
           new Date().toLocaleString() +
-          ". Reports missing a valid PD or section: " +
+          ". Reports missing a valid employee key, PD, or section: " +
           parsedReports.missingIdentity +
           ". Other invalid records or tasks skipped: " +
           parsedReports.invalidItems +
@@ -1677,14 +1725,22 @@
     function populatePageNames() {
       const selected = $("pageEmployee").value;
       const people = getPeople();
+
       $("pageEmployee").innerHTML = EMPLOYEE_PAGES.map((employee, index) => {
-        const catalog = [...catalogs.values()].find(item => item.page === employee.page);
-        const person = catalog && people.find(item => item.key === employeeKey(catalog.pd));
-        const label = catalog
-          ? `${person?.name || catalog.employee_name} (${employeeKey(catalog.pd)})`
-          : `${employee.name} — PD mapping needed`;
+        const key = employeeKey(employee.employee_key);
+        const catalog = catalogs.get(key);
+        const person = people.find(item => item.key === key);
+
+        const name = person?.name || catalog?.employee_name || employee.name;
+        const pd = person?.pd || catalog?.pd || "";
+
+        const label = pd
+          ? `${name} (${pd})`
+          : `${name} — PD mapping needed`;
+
         return `<option value="${index}">${escapeHTML(label)} — ${escapeHTML(employee.section)}</option>`;
       }).join("");
+
       if (selected) $("pageEmployee").value = selected;
     }
     populatePageNames();
