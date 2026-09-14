@@ -221,9 +221,10 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+            grid-template-columns: repeat(auto-fill, 260px);
             gap: 12px;
             padding: 14px;
+            justify-content: start;
         }
 
         .person-btn {
@@ -236,6 +237,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            width: 260px;
             height: 72px;
             min-height: 72px;
             transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
@@ -369,6 +371,7 @@
             }
 
             .person-btn {
+                width: 100%;
                 height: 72px;
                 min-height: 72px;
             }
@@ -406,14 +409,14 @@
         </div>
         <div class="grid-container">
             <!-- Linked to hq1.html (Jarrod spelling corrected) -->
-            <a href="https://mhrdnco.github.io/G1/hq1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/hq1.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '01', 'groves', 'Jarrod Groves');">
                 <div class="person-left">
                     <span class="person-index">01</span>
                     <span class="person-name">Jarrod Groves</span>
                 </div>
             </a>
             <!-- Linked to hq2.html -->
-            <a href="https://mhrdnco.github.io/G1/hq2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/hq2.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '02', 'webster', 'Timothy Webster');">
                 <div class="person-left">
                     <span class="person-index">02</span>
                     <span class="person-name">Timothy Webster</span>
@@ -429,28 +432,28 @@
         </div>
         <div class="grid-container">
             <!-- Linked to smb4.html -->
-            <a href="https://mhrdnco.github.io/G1/smb4.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/smb4.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '03', 'mattei', 'Miguel Mattei');">
                 <div class="person-left">
                     <span class="person-index">03</span>
                     <span class="person-name">Miguel Mattei</span>
                 </div>
             </a>
             <!-- Linked to smb1.html -->
-            <a href="https://mhrdnco.github.io/G1/smb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/smb1.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '04', 'kwon', 'Marion Kwon');">
                 <div class="person-left">
                     <span class="person-index">04</span>
                     <span class="person-name">Marion Kwon</span>
                 </div>
             </a>
             <!-- Linked to smb3.html -->
-            <a href="https://mhrdnco.github.io/G1/smb3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/smb3.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '05', 'tondre', 'Andrew Tondre');">
                 <div class="person-left">
                     <span class="person-index">05</span>
                     <span class="person-name">Andrew Tondre</span>
                 </div>
             </a>
             <!-- Linked to smb2.html -->
-            <a href="https://mhrdnco.github.io/G1/smb2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/smb2.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '06', 'serrano', 'Denise Serrano');">
                 <div class="person-left">
                     <span class="person-index">06</span>
                     <span class="person-name">Denise Serrano</span>
@@ -466,14 +469,14 @@
         </div>
         <div class="grid-container">
             <!-- Linked to stb2.html -->
-            <a href="https://mhrdnco.github.io/G1/stb2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/stb2.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '07', 'garcia', 'David Garcia');">
                 <div class="person-left">
                     <span class="person-index">07</span>
                     <span class="person-name">David Garcia</span>
                 </div>
             </a>
             <!-- Linked to stb1.html -->
-            <a href="https://mhrdnco.github.io/G1/stb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/stb1.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '08', 'jimenez', 'Oscar Jimenez');">
                 <div class="person-left">
                     <span class="person-index">08</span>
                     <span class="person-name">Oscar Jimenez</span>
@@ -489,21 +492,21 @@
         </div>
         <div class="grid-container">
             <!-- Linked to hrob3.html -->
-            <a href="https://mhrdnco.github.io/G1/hrob3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/hrob3.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '09', 'moore', 'Kevin Moore');">
                 <div class="person-left">
                     <span class="person-index">09</span>
                     <span class="person-name">Kevin Moore</span>
                 </div>
             </a>
             <!-- Linked to hrob1.html -->
-            <a href="https://mhrdnco.github.io/G1/hrob1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/hrob1.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '10', 'cheatham', 'Kimberly Cheatham');">
                 <div class="person-left">
                     <span class="person-index">10</span>
                     <span class="person-name">Kimberly Cheatham</span>
                 </div>
             </a>
             <!-- Linked to hrob2.html -->
-            <a href="https://mhrdnco.github.io/G1/hrob2.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/hrob2.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '11', 'vargas', 'Chandler Vargas');">
                 <div class="person-left">
                     <span class="person-index">11</span>
                     <span class="person-name">Chandler Vargas</span>
@@ -519,14 +522,14 @@
         </div>
         <div class="grid-container">
             <!-- Linked to epsb3.html -->
-            <a href="https://mhrdnco.github.io/G1/epsb3.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/epsb3.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '12', 'witherspoon', 'Tennille Witherspoon');">
                 <div class="person-left">
                     <span class="person-index">12</span>
                     <span class="person-name">Tennille Witherspoon</span>
                 </div>
             </a>
             <!-- Linked to epsb1.html -->
-            <a href="https://mhrdnco.github.io/G1/epsb1.html" class="person-btn" target="_blank" rel="noopener noreferrer">
+            <a href="https://mhrdnco.github.io/G1/epsb1.html" class="person-btn" target="_blank" rel="noopener noreferrer" onclick="return accessEmployee(event, '13', 'miller', 'Nakita Miller');">
                 <div class="person-left">
                     <span class="person-index">13</span>
                     <span class="person-name">Nakita Miller</span>
@@ -562,6 +565,29 @@
             const consoleBox = document.getElementById('console-output');
             consoleBox.innerHTML = `SYS_LOG: RECORD ACCESSED >> ENTRY_ID: [#${id}] | IDENT: ${name} | DEPT: ${branch}`;
             consoleBox.style.color = "#7b947b"; // Reset back to baseline terminal color
+        }
+
+        function accessEmployee(event, id, requiredPin, employeeName) {
+            event.preventDefault();
+
+            const consoleBox = document.getElementById('console-output');
+            const enteredPin = prompt(`EMPLOYEE ${id} SECURE ACCESS\nEnter ${employeeName}'s access PIN:`);
+
+            if (enteredPin === null) {
+                return false;
+            }
+
+            if (enteredPin.trim().toLowerCase() === requiredPin) {
+                consoleBox.innerHTML = `SYS_LOG: ACCESS GRANTED >> ENTRY_ID: [#${id}] | IDENT: ${employeeName}`;
+                consoleBox.style.color = "#7b947b";
+                window.open(event.currentTarget.href, "_blank", "noopener,noreferrer");
+            } else {
+                consoleBox.innerText = `SYS_LOG: WARNING >> ACCESS DENIED FOR ENTRY_ID: [#${id}]`;
+                consoleBox.style.color = "#bb5048";
+                alert("ACCESS DENIED: Incorrect employee PIN.");
+            }
+
+            return false;
         }
 
         function accessDashboard() {
