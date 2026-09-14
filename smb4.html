@@ -355,13 +355,15 @@
         let empInfo = { name: "", section: "", uicParaLin: "", psn: "" };
         let pieChart = null;
 
-        window.onload = function() {
+                window.onload = async function() {
             populatePsnDropdown();
-            populateDropdowns(); 
-            loadLocalData(); 
-            renderBattleRhythm(); 
-            updateTable(); 
+            populateDropdowns();
+            loadLocalData();
+            renderBattleRhythm();
+            renderHistory();
+            updateTable();
             refreshHeaders();
+            await initializeCloudflareState();
         };
 
         function populateDropdowns() {
@@ -382,16 +384,100 @@
             document.getElementById('adminAllTasks').innerHTML = allTasksList;
         }
 
-        function autoSave() {
+                const EMPLOYEE_KEY = "smb4";
+        const STATE_ENDPOINT = "https://g1-tracker-api.j-enrique-alvarado.workers.dev/api/state";
+        let cloudStateReady = false;
+        let cloudSaveTimer = null;
+
+        function saveLocalData() {
             localStorage.setItem('hr_tracker_tasks_m1508420fr', JSON.stringify(tasks));
             localStorage.setItem('hr_tracker_br_m1508420fr', JSON.stringify(battleRhythm));
             localStorage.setItem('hr_tracker_history_m1508420fr', JSON.stringify(history));
             localStorage.setItem('hr_tracker_emp_m1508420fr', JSON.stringify(empInfo));
         }
 
-        function manualSave() { 
-            autoSave(); 
-            alert("Data manually saved successfully!"); 
+        function autoSave() {
+            saveLocalData();
+            if (!cloudStateReady) return;
+            clearTimeout(cloudSaveTimer);
+            cloudSaveTimer = setTimeout(() => saveStateToCloudflare(false), 350);
+        }
+
+        function hasMeaningfulLocalState() {
+            const hasTasks = Array.isArray(tasks) && tasks.length > 0;
+            const hasHistory = Array.isArray(history) && history.length > 0;
+            const hasEmployeeInfo = empInfo && Object.values(empInfo).some(v => String(v || "").trim() !== "");
+            const hasBattleRhythm = battleRhythm &&
+                Object.values(battleRhythm).some(dayTasks => Array.isArray(dayTasks) && dayTasks.length > 0);
+            return hasTasks || hasHistory || hasEmployeeInfo || hasBattleRhythm;
+        }
+
+        function applyCloudState(state) {
+            tasks = Array.isArray(state.tasks) ? state.tasks : [];
+            battleRhythm = state.battle_rhythm && typeof state.battle_rhythm === "object" && !Array.isArray(state.battle_rhythm)
+                ? state.battle_rhythm
+                : { Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[] };
+            history = Array.isArray(state.history) ? state.history : [];
+            empInfo = state.employee_info && typeof state.employee_info === "object" && !Array.isArray(state.employee_info)
+                ? state.employee_info
+                : { name:"", section:"", uicParaLin:"", psn:"" };
+            saveLocalData();
+            renderBattleRhythm();
+            renderHistory();
+            updateTable();
+            refreshHeaders();
+        }
+
+        async function saveStateToCloudflare(showErrors = false) {
+            try {
+                const response = await fetch(STATE_ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        employee_key: EMPLOYEE_KEY,
+                        tasks,
+                        battle_rhythm: battleRhythm,
+                        history,
+                        employee_info: empInfo
+                    })
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success) throw new Error(result.error || `HTTP ${response.status}`);
+                return true;
+            } catch (error) {
+                console.error("Cloudflare state save failed:", error);
+                if (showErrors) alert("Cloudflare save failed. Your data is still saved on this computer.\n\n" + error.message);
+                return false;
+            }
+        }
+
+        async function initializeCloudflareState() {
+            try {
+                const response = await fetch(`${STATE_ENDPOINT}?employee_key=${encodeURIComponent(EMPLOYEE_KEY)}`);
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || !result.success) throw new Error(result.error || `HTTP ${response.status}`);
+
+                if (result.exists) {
+                    applyCloudState(result);
+                } else {
+                    const saved = await saveStateToCloudflare(true);
+                    if (!saved) return;
+                }
+                cloudStateReady = true;
+            } catch (error) {
+                console.error("Cloudflare state initialization failed:", error);
+                cloudStateReady = false;
+            }
+        }
+
+                async function manualSave() {
+            saveLocalData();
+            if (!cloudStateReady) {
+                alert("Local backup saved. Cloudflare synchronization is still starting.");
+                return;
+            }
+            const saved = await saveStateToCloudflare(true);
+            if (saved) alert("Data saved successfully to Cloudflare D1 and this browser.");
         }
 
         function switchTab(tabId, element) {
